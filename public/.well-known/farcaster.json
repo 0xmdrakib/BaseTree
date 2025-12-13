@@ -1,29 +1,28 @@
 {
   "accountAssociation": {
-    "header": "",
-    "payload": "",
-    "signature": ""
+    "header": "eyJmaWQiOjUzMjc2NCwidHlwZSI6ImF1dGgiLCJrZXkiOiIweEFBM0U0ZDM1MkFmMGYwMUQ4N2YzYTRGNjVENDI4ODJBM2MxNDliYzYifQ",
+    "payload": "eyJkb21haW4iOiJiYXNldHJlZS52ZXJjZWwuYXBwIn0",
+    "signature": "xts4gBq2ph+ocBZ3bISnXmiLfOVGYkmb1SrDNUvd9EAWw3ybdK6gV03M0bsM36tnwfnUHwhM42Wjg24QbEcS8Bw="
   },
   "miniapp": {
     "version": "1",
     "name": "Base Tree",
     "homeUrl": "https://basetree.vercel.app",
+
     "iconUrl": "https://basetree.vercel.app/icon.png",
     "splashImageUrl": "https://basetree.vercel.app/splash.png",
     "splashBackgroundColor": "#050509",
 
+    "subtitle": "Base profile and trees",
+    "description": "View Base profile details and plant real trees onchain",
+
     "primaryCategory": "social",
     "tags": ["base", "farcaster", "profile", "trees", "reputation"],
 
-    "subtitle": "Base profile and trees",
-    "description": "View your Base profile details and plant real trees onchain",
-    "tagline": "Know your Base reputation",
-
     "heroImageUrl": "https://basetree.vercel.app/hero.png",
+    "screenshotUrls": ["https://basetree.vercel.app/hero.png"],
 
-    "screenshotUrls": [
-      "https://basetree.vercel.app/screenshot1.png"
-    ],
+    "tagline": "Know your Base reputation",
 
     "ogTitle": "Base Tree",
     "ogDescription": "View Base profile details and plant real trees onchain",
