@@ -1,36 +1,34 @@
 {
   "accountAssociation": {
-    "header": "<generated-header>",
-    "payload": "<generated-payload>",
-    "signature": "<generated-signature>"
+    "header": "",
+    "payload": "",
+    "signature": ""
   },
   "miniapp": {
     "version": "1",
     "name": "Base Tree",
     "homeUrl": "https://basetree.vercel.app",
-    "canonicalDomain": "basetree.vercel.app",
-
     "iconUrl": "https://basetree.vercel.app/icon.png",
     "splashImageUrl": "https://basetree.vercel.app/splash.png",
     "splashBackgroundColor": "#050509",
 
-    "subtitle": "Base profile + real trees",
-    "description": "View your Base/Farcaster profile details (FID, followers, Neynar score) and optionally help plant real trees onchain.",
-    "tagline": "Know your Base reputation",
-
-    "heroImageUrl": "https://basetree.vercel.app/hero.png",
-    "screenshotUrls": [
-      "https://basetree.vercel.app/hero.png"
-    ],
-
     "primaryCategory": "social",
     "tags": ["base", "farcaster", "profile", "trees", "reputation"],
 
+    "subtitle": "Base profile and trees",
+    "description": "View your Base profile details and plant real trees onchain",
+    "tagline": "Know your Base reputation",
+
+    "heroImageUrl": "https://basetree.vercel.app/hero.png",
+
+    "screenshotUrls": [
+      "https://basetree.vercel.app/screenshot1.png"
+    ],
+
     "ogTitle": "Base Tree",
-    "ogDescription": "View your Base profile + plant real trees onchain.",
+    "ogDescription": "View Base profile details and plant real trees onchain",
     "ogImageUrl": "https://basetree.vercel.app/hero.png",
 
-    "requiredChains": ["eip155:8453"],
-    "requiredCapabilities": ["actions.ready"]
+    "noindex": true
   }
 }
