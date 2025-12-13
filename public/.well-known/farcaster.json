@@ -1,5 +1,5 @@
 {
-  "accountAssociation": {  // these will be added in step 5
+  "accountAssociation": {
     "header": "",
     "payload": "",
     "signature": ""
