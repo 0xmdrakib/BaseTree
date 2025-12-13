@@ -1,0 +1,12 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "Reputation Lens",
+    "iconUrl": "https://your-domain.example/icon.png",
+    "homeUrl": "https://your-domain.example/",
+    "imageUrl": "https://your-domain.example/og-image.png",
+    "buttonTitle": "Open profile",
+    "splashImageUrl": "https://your-domain.example/icon.png",
+    "splashBackgroundColor": "#050509"
+  }
+}
