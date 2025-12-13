@@ -1,31 +1,36 @@
 {
   "accountAssociation": {
-    "header": "",
-    "payload": "",
-    "signature": ""
+    "header": "<generated-header>",
+    "payload": "<generated-payload>",
+    "signature": "<generated-signature>"
   },
+  "miniapp": {
+    "version": "1",
+    "name": "Base Tree",
+    "homeUrl": "https://basetree.vercel.app",
+    "canonicalDomain": "basetree.vercel.app",
 
-"miniapp": {
-  "version": "1",
-  "name": "Reputation Lens",
-  "homeUrl": "https://baseprofile.vercel.app/",
-  "iconUrl": "https://baseprofile.vercel.app/icon.png",
-  "splashImageUrl": "https://baseprofile.vercel.app/splash.png",
-  "splashBackgroundColor": "#050509",
+    "iconUrl": "https://basetree.vercel.app/icon.png",
+    "splashImageUrl": "https://basetree.vercel.app/splash.png",
+    "splashBackgroundColor": "#050509",
 
-  "subtitle": "Farcaster reputation in seconds",
-  "description": "Detect your FID, username, follower stats, and Neynar score instantly inside Base.",
-  "primaryCategory": "social",
-  "tags": ["farcaster", "reputation", "neynar", "profile", "stats"],
+    "subtitle": "Base profile + real trees",
+    "description": "View your Base/Farcaster profile details (FID, followers, Neynar score) and optionally help plant real trees onchain.",
+    "tagline": "Know your Base reputation",
 
-  "tagline": "Know your Farcaster score.",
-  "heroImageUrl": "https://baseprofile.vercel.app/hero.png",
-  "screenshotUrls": [
-    "https://baseprofile.vercel.app/screenshot-1.png"
-  ],
+    "heroImageUrl": "https://basetree.vercel.app/hero.png",
+    "screenshotUrls": [
+      "https://basetree.vercel.app/hero.png"
+    ],
 
-  "ogTitle": "Reputation Lens",
-  "ogDescription": "Instant Farcaster profile + Neynar score inside Base.",
-  "ogImageUrl": "https://baseprofile.vercel.app/og.png",
-  "noindex": true
+    "primaryCategory": "social",
+    "tags": ["base", "farcaster", "profile", "trees", "reputation"],
+
+    "ogTitle": "Base Tree",
+    "ogDescription": "View your Base profile + plant real trees onchain.",
+    "ogImageUrl": "https://basetree.vercel.app/hero.png",
+
+    "requiredChains": ["eip155:8453"],
+    "requiredCapabilities": ["actions.ready"]
+  }
 }
