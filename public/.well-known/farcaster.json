@@ -1,12 +1,24 @@
-{
-  "miniapp": {
-    "version": "1",
-    "name": "Reputation Lens",
-    "iconUrl": "https://your-domain.example/icon.png",
-    "homeUrl": "https://your-domain.example/",
-    "imageUrl": "https://your-domain.example/og-image.png",
-    "buttonTitle": "Open profile",
-    "splashImageUrl": "https://your-domain.example/icon.png",
-    "splashBackgroundColor": "#050509"
-  }
+"miniapp": {
+  "version": "1",
+  "name": "Reputation Lens",
+  "homeUrl": "https://baseprofile.vercel.app/",
+  "iconUrl": "https://baseprofile.vercel.app/icon.png",
+  "splashImageUrl": "https://baseprofile.vercel.app/splash.png",
+  "splashBackgroundColor": "#050509",
+
+  "subtitle": "Farcaster reputation in seconds",
+  "description": "Detect your FID, username, follower stats, and Neynar score instantly inside Base.",
+  "primaryCategory": "social",
+  "tags": ["farcaster", "reputation", "neynar", "profile", "stats"],
+
+  "tagline": "Know your Farcaster score.",
+  "heroImageUrl": "https://baseprofile.vercel.app/hero.png",
+  "screenshotUrls": [
+    "https://baseprofile.vercel.app/screenshot-1.png"
+  ],
+
+  "ogTitle": "Reputation Lens",
+  "ogDescription": "Instant Farcaster profile + Neynar score inside Base.",
+  "ogImageUrl": "https://baseprofile.vercel.app/og.png",
+  "noindex": true
 }
