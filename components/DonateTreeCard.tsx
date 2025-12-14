@@ -7,8 +7,8 @@ const RECIPIENT = "0x62233D5483515A79ac06CEcEbac7D399fDF8a99b";
 const OTP_CRYPTO_URL = "https://onetreeplanted.org/pages/donate-crypto";
 const USE_TESTNET = false;
 
-type Status = "idle" | "processing" | "success" | "error";
 type Preset = "0.10" | "0.50" | "1.00" | "custom";
+type Status = "idle" | "processing" | "success" | "error";
 
 function shortAddr(addr: string) {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
@@ -52,6 +52,11 @@ export default function DonateTreeCard() {
       setError("Enter a valid amount (example: 0.50).");
       return;
     }
+    if (n > 500) {
+      setStatus("error");
+      setError("That amount is too large.");
+      return;
+    }
 
     setStatus("processing");
 
@@ -67,7 +72,7 @@ export default function DonateTreeCard() {
 
       setStatus("success");
       setShowAnim(true);
-      window.setTimeout(() => setShowAnim(false), 1600);
+      window.setTimeout(() => setShowAnim(false), 1400);
     } catch (e: any) {
       setStatus("error");
       setError(e?.message ?? "Payment failed.");
@@ -85,7 +90,7 @@ export default function DonateTreeCard() {
             Donate USDC on Base
           </div>
           <p className="mt-1 text-[11px] leading-relaxed text-white/60">
-            One-tap checkout. You get an onchain receipt (tx hash).
+            One-tap checkout. You get an onchain receipt (tx hash when available).
           </p>
         </div>
 
@@ -106,20 +111,19 @@ export default function DonateTreeCard() {
             className={`rounded-xl border px-2 py-2 text-xs font-semibold tabular-nums transition ${
               preset === v
                 ? "border-white/25 bg-white/10 text-white"
-                : "border-white/10 bg-white/5 text-white/70 hover:border-white/20 hover:bg-white/8"
+                : "border-white/10 bg-white/5 text-white/70 hover:border-white/20 hover:bg-white/10"
             }`}
           >
             ${v}
           </button>
         ))}
-
         <button
           type="button"
           onClick={() => setPreset("custom")}
           className={`rounded-xl border px-2 py-2 text-xs font-semibold transition ${
             preset === "custom"
               ? "border-white/25 bg-white/10 text-white"
-              : "border-white/10 bg-white/5 text-white/70 hover:border-white/20 hover:bg-white/8"
+              : "border-white/10 bg-white/5 text-white/70 hover:border-white/20 hover:bg-white/10"
           }`}
         >
           Custom
@@ -145,7 +149,7 @@ export default function DonateTreeCard() {
         <div className="text-[11px] text-white/60">
           {status === "idle" && "Pick an amount, then pay."}
           {status === "processing" && "Waiting for approval…"}
-          {status === "success" && "Donation sent. Onchain proof ready."}
+          {status === "success" && "Donation sent. Thank you 🌱"}
           {status === "error" && (error ?? "Payment failed.")}
         </div>
 
@@ -173,7 +177,7 @@ export default function DonateTreeCard() {
             </a>
           </div>
           <div className="mt-2 text-white/55">
-            Org link:{" "}
+            Verify org:{" "}
             <a
               className="text-white/75 underline underline-offset-4"
               href={OTP_CRYPTO_URL}
@@ -188,7 +192,7 @@ export default function DonateTreeCard() {
 
       {showAnim ? (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="rounded-2xl border border-white/15 bg-black/60 px-4 py-3 sprout-pop">
+          <div className="rounded-2xl border border-white/15 bg-black/60 px-4 py-2 text-xs text-white sprout-pop">
             🌱 Tree planted
           </div>
         </div>
@@ -197,10 +201,10 @@ export default function DonateTreeCard() {
       <style jsx global>{`
         @keyframes sproutPop {
           0% { transform: translateY(10px); opacity: 0; }
-          25% { opacity: 1; }
+          20% { opacity: 1; }
           100% { transform: translateY(-6px); opacity: 0; }
         }
-        .sprout-pop { animation: sproutPop 1600ms ease-out both; }
+        .sprout-pop { animation: sproutPop 1400ms ease-out both; }
       `}</style>
     </div>
   );
