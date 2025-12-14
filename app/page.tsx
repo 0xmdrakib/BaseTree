@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { pay, getPaymentStatus } from "@base-org/account";
+import DonateTreeCard from "@/components/DonateTreeCard";
 
 type Profile = {
   fid: number;
