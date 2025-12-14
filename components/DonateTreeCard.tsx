@@ -59,7 +59,6 @@ export default function DonateTreeCard() {
     }
 
     setStatus("processing");
-
     try {
       const res: any = await pay({
         amount: n.toFixed(2),
@@ -177,7 +176,7 @@ export default function DonateTreeCard() {
             </a>
           </div>
           <div className="mt-2 text-white/55">
-            Verify org:{" "}
+            Org link:{" "}
             <a
               className="text-white/75 underline underline-offset-4"
               href={OTP_CRYPTO_URL}
