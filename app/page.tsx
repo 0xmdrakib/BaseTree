@@ -4,16 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import DonateTreeCard from "../components/DonateTreeCard";
 
-// ✅ This tag must appear on your deployed site. If not, you're deploying wrong project.
-const BUILD_TAG = "TREE_DONATION_V1";
-
-type MiniAppUser = {
-  fid?: number;
-  username?: string;
-  displayName?: string;
-  pfpUrl?: string;
-};
-
 type Profile = {
   fid: number;
   username: string;
@@ -36,7 +26,6 @@ function describeScore(score: number | null): ScoreDescriptor {
       summary: "Start engaging with good accounts to build your score.",
     };
   }
-
   if (score >= 0.85) {
     return {
       label: "Signal: Elite",
@@ -44,14 +33,12 @@ function describeScore(score: number | null): ScoreDescriptor {
         "You look like a top-tier account. Strong, consistent interactions with the network.",
     };
   }
-
   if (score >= 0.7) {
     return {
       label: "Signal: High",
       summary: "You are a trusted, high-quality participant in the Farcaster graph.",
     };
   }
-
   if (score >= 0.55) {
     return {
       label: "Signal: Growing",
@@ -59,7 +46,6 @@ function describeScore(score: number | null): ScoreDescriptor {
         "Solid signal. Keep engaging with good accounts to push into the top tier.",
     };
   }
-
   if (score >= 0.3) {
     return {
       label: "Signal: Emerging",
@@ -67,7 +53,6 @@ function describeScore(score: number | null): ScoreDescriptor {
         "You are early in your reputation journey. Thoughtful casts and connections will lift this.",
     };
   }
-
   return {
     label: "Signal: Low",
     summary:
@@ -78,7 +63,6 @@ function describeScore(score: number | null): ScoreDescriptor {
 export default function HomePage() {
   const [isMiniAppEnv, setIsMiniAppEnv] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [userContext, setUserContext] = useState<MiniAppUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -98,15 +82,8 @@ export default function HomePage() {
         setIsMiniAppEnv(true);
 
         const context = await sdk.context;
-        const user = context.user ?? {};
-        setUserContext({
-          fid: user.fid,
-          username: user.username,
-          displayName: user.displayName,
-          pfpUrl: user.pfpUrl,
-        });
+        const fid = context.user?.fid;
 
-        const fid = user.fid;
         if (!fid) {
           setError("Could not detect your Farcaster account (missing FID).");
           setIsLoading(false);
@@ -153,9 +130,8 @@ export default function HomePage() {
           </div>
           <h1 className="mt-3 text-lg font-semibold">Open inside Base App or Warpcast</h1>
           <p className="mt-2 text-sm text-white/60">
-            This tool is designed to run as a Farcaster / Base mini app.
+            This tool runs as a Farcaster / Base mini app.
           </p>
-          <p className="mt-3 text-xs text-white/40">Build: {BUILD_TAG}</p>
         </div>
       </main>
     );
@@ -165,9 +141,10 @@ export default function HomePage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background px-6">
         <div className="relative w-full max-w-xs overflow-hidden rounded-3xl border border-white/10 bg-card/80 p-5">
+          <div className="pointer-events-none absolute inset-0 opacity-60 blur-3xl gradient-ring" />
           <div className="relative">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 animate-pulse rounded-2xl bg-white/10" />
+              <div className="h-10 w-10 animate-pulse rounded-2xl bg-white/10" />
               <div className="space-y-1">
                 <div className="h-3 w-28 animate-pulse rounded-full bg-white/15" />
                 <div className="h-2.5 w-16 animate-pulse rounded-full bg-white/10" />
@@ -194,7 +171,6 @@ export default function HomePage() {
             Error
           </div>
           <p className="mt-2 text-sm">{error}</p>
-          <p className="mt-3 text-xs text-red-200/60">Build: {BUILD_TAG}</p>
         </div>
       </main>
     );
@@ -205,93 +181,86 @@ export default function HomePage() {
   const score = profile.neynarScore;
 
   return (
-    <main
-      className="min-h-screen bg-background px-4"
-      style={{
-        paddingTop: "calc(env(safe-area-inset-top) + 22px)",
-        paddingBottom: "calc(env(safe-area-inset-bottom) + 22px)",
-      }}
-    >
-      <div className="mx-auto w-full max-w-md">
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 via-card to-black/80 p-5 shadow-glow backdrop-blur-xl">
-          {/* Header */}
-          <div className="flex items-center justify-between gap-3">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+      <div className="relative w-full max-w-md">
+        <div className="pointer-events-none absolute inset-0 opacity-60 blur-3xl gradient-ring" />
+
+        <div className="relative overflow-hidden rounded-3xl border border-white/12 bg-gradient-to-b from-white/6 via-card to-black/80 p-5 shadow-glow backdrop-blur-xl">
+          {/* Header (fixed alignment, removed “Reputation Lens”) */}
+          <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              {profile.pfpUrl && (
+              {profile.pfpUrl ? (
                 <img
                   src={profile.pfpUrl}
                   alt={profile.username}
                   className="h-12 w-12 shrink-0 rounded-2xl border border-white/15 object-cover"
                 />
+              ) : (
+                <div className="h-12 w-12 shrink-0 rounded-2xl border border-white/10 bg-white/5" />
               )}
+
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-[0.25em] text-white/40">
-                  Reputation Lens
-                </div>
-                <div className="mt-1 truncate text-lg font-semibold leading-tight">
+                {/* c) Name then username then FID */}
+                <div className="truncate text-[17px] font-semibold leading-tight text-white/95">
                   {profile.displayName || profile.username}
                 </div>
-                <div className="truncate text-xs text-white/50">
-                  @{profile.username} · FID {profile.fid}
+                <div className="mt-1 truncate text-xs font-medium text-white/60">
+                  @{profile.username}
                 </div>
+                <div className="mt-1 text-[11px] text-white/45">FID: {profile.fid}</div>
               </div>
             </div>
 
-            <div className="shrink-0 rounded-2xl bg-white/5 px-3 py-2 text-right text-[11px]">
-              <div className="text-[9px] uppercase tracking-[0.18em] text-white/40">
+            {/* Neynar score block (fixed alignment) */}
+            <div className="shrink-0 rounded-2xl border border-white/12 bg-black/45 px-3 py-2 text-right">
+              <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45">
                 Neynar Score
               </div>
-              <div className="mt-1 text-base font-semibold tabular-nums">
+              <div className="mt-1 text-[18px] font-semibold tabular-nums text-white/95">
                 {score != null ? score.toFixed(2) : "N/A"}
               </div>
             </div>
           </div>
 
-          {/* Metrics */}
-          <div className="mt-5 grid grid-cols-3 gap-2 text-center text-xs">
-            <div className="rounded-2xl border border-white/10 bg-black/40 px-2 py-3">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-white/40">
-                Followers
+          {/* Metrics (fix label wrap / misalignment) */}
+          <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+            {[
+              { label: "Followers", value: profile.followerCount.toLocaleString() },
+              { label: "Following", value: profile.followingCount.toLocaleString() },
+              {
+                label: "Follow Ratio",
+                value:
+                  profile.followingCount === 0
+                    ? "—"
+                    : (profile.followerCount / profile.followingCount).toFixed(2),
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="flex flex-col items-center justify-center rounded-2xl border border-white/12 bg-black/40 px-2 py-3"
+              >
+                <div className="whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.16em] text-white/45">
+                  {item.label}
+                </div>
+                <div className="mt-1 text-sm font-semibold tabular-nums text-white/95">
+                  {item.value}
+                </div>
               </div>
-              <div className="mt-1 text-sm font-semibold tabular-nums">
-                {profile.followerCount.toLocaleString()}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-black/40 px-2 py-3">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-white/40">
-                Following
-              </div>
-              <div className="mt-1 text-sm font-semibold tabular-nums">
-                {profile.followingCount.toLocaleString()}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-black/40 px-2 py-3">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-white/40">
-                Follow Ratio
-              </div>
-              <div className="mt-1 text-sm font-semibold tabular-nums">
-                {profile.followingCount === 0
-                  ? "—"
-                  : (profile.followerCount / profile.followingCount).toFixed(2)}
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Score bar */}
-          <div className="mt-5 rounded-2xl border border-white/10 bg-black/50 p-3 text-xs">
-            <div className="flex items-center justify-between gap-3">
+          <div className="mt-5 rounded-2xl border border-white/12 bg-black/50 p-3">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-white/40">
+                <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/45">
                   Quality signal
                 </div>
-                <div className="mt-1 text-sm font-semibold">
+                <div className="mt-1 text-sm font-semibold text-white/95">
                   {scoreDescriptor.label}
                 </div>
               </div>
-
-              <div className="w-24 text-right text-[10px] text-white/60">
+              <div className="w-28 text-right text-[10px] leading-tight text-white/55">
                 Score is between 0 and 1
               </div>
             </div>
@@ -313,15 +282,14 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* ✅ Tree donation option */}
+          {/* Tree donation card */}
           <div className="mt-5">
             <DonateTreeCard />
           </div>
 
-          {/* Footer note + build tag */}
-          <div className="mt-4 flex items-center justify-between text-[10px] text-white/40">
-            <span>Data via Neynar · updates weekly based on onchain & social graph</span>
-            <span>Build: {BUILD_TAG}</span>
+          {/* Footer */}
+          <div className="mt-4 text-[10px] text-white/40">
+            Data via Neynar · updates weekly based on onchain & social graph
           </div>
         </div>
       </div>
