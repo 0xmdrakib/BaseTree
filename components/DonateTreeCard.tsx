@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { pay } from "@base-org/account";
+import { sdk } from "@farcaster/miniapp-sdk";
 
 const RECIPIENT = "0x62233D5483515A79ac06CEcEbac7D399fDF8a99b";
 const OTP_VERIFY_URL = "https://onetreeplanted.org/pages/donate-crypto";
 const USE_TESTNET = false;
+
+// Base Mainnet USDC (6 decimals)
+const BASE_USDC_CAIP19 =
+  "eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
 type Preset = "0.10" | "0.50" | "1.00" | "custom";
 type Status = "idle" | "processing" | "success" | "error";
@@ -27,6 +31,17 @@ function sanitizeAmount(input: string) {
   const n = Number(normalized);
   if (!Number.isFinite(n) || n <= 0) return "1.00";
   return n.toFixed(2);
+}
+
+// Convert a decimal USDC string (e.g. "0.50") to base units (6 decimals) as a string.
+function toUsdcBaseUnits(amountStr: string): string {
+  const [wholeRaw, fracRaw = ""] = amountStr.split(".");
+  const whole = (wholeRaw || "0").replace(/^0+(?=\d)/, "");
+  const frac = (fracRaw + "000000").slice(0, 6);
+
+  // BigInt math avoids float rounding bugs.
+  const units = BigInt(whole || "0") * BigInt("1000000") + BigInt(frac || "0");
+  return units.toString();
 }
 
 export default function DonateTreeCard() {
@@ -100,17 +115,38 @@ export default function DonateTreeCard() {
     setStatus("processing");
 
     try {
-      const res: any = await pay({
-        amount: n.toFixed(2),
-        to: RECIPIENT,
-        testnet: USE_TESTNET,
-      });
+      // ✅ Best path for Mini App hosts (Base app + Warpcast): use the native send flow.
+      let inMiniApp = await (sdk as any).isInMiniApp?.(1500).catch(() => false);
+      let capabilities = await sdk.getCapabilities().catch(() => [] as string[]);
+      if (!inMiniApp && capabilities.includes("actions.sendToken")) inMiniApp = true;
+      if (inMiniApp) {
+        if (!capabilities.includes("actions.sendToken")) {
+          throw new Error(
+            "Wallet not available in this client. Please update Base / Warpcast and try again.",
+          );
+        }
 
-      const hash = res?.transactionHash ?? res?.txHash ?? null;
-      if (typeof hash === "string" && hash.length > 10) setTxHash(hash);
+        const result = await sdk.actions.sendToken({
+          token: BASE_USDC_CAIP19,
+          amount: toUsdcBaseUnits(amount), // 6-decimal base units
+          recipientAddress: RECIPIENT,
+        });
 
-      setStatus("success");
-      startTreeAnimation();
+        if (result?.success) {
+          setTxHash(result.send.transaction);
+          setStatus("success");
+          startTreeAnimation();
+          return;
+        }
+
+        // `reason` is a stable enum: rejected_by_user | send_failed
+        if (result?.reason === "rejected_by_user") {
+          throw new Error("Transaction rejected.");
+        }
+        throw new Error(result?.error?.message ?? "Send failed.");
+      }
+      // Not running inside a Mini App host — we intentionally do not redirect to external checkout.
+      throw new Error("Wallet not available. Open this mini app in Base app or Warpcast.");
     } catch (e: any) {
       setStatus("error");
       setError(e?.message ?? "Payment failed.");
