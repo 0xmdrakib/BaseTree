@@ -202,7 +202,7 @@ export default function HomePage() {
 
         <div className="relative overflow-hidden rounded-3xl border border-white/12 bg-gradient-to-b from-white/6 via-card to-black/80 p-5 shadow-glow backdrop-blur-xl">
           {/* Header (fixed alignment, removed “Reputation Lens”) */}
-          <div className="flex items-start justify-between gap-3">
+          <div className="grid grid-cols-[1fr_auto] items-start gap-3">
             <div className="flex min-w-0 items-center gap-3">
               {profile.pfpUrl ? (
                 <img
@@ -228,10 +228,11 @@ export default function HomePage() {
 
             {/* Right rail (Share + score) */}
             <div className="flex shrink-0 flex-col items-end gap-2">
+              {/* Keep both tiles same width for perfect alignment */}
               <button
                 type="button"
                 onClick={handleShare}
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/12 bg-black/45 px-3 py-2 text-[11px] font-semibold text-white/80 shadow-sm backdrop-blur transition hover:bg-black/60 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30 active:scale-[0.98]"
+                className="w-[140px] inline-flex items-center justify-center gap-2 rounded-full border border-white/12 ring-1 ring-white/10 bg-white/5 px-3 py-2 text-[11px] font-semibold text-white/80 shadow-sm backdrop-blur transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30 active:scale-[0.98]"
                 aria-label="Share"
                 title="Share"
               >
@@ -245,16 +246,14 @@ export default function HomePage() {
                   className="h-4 w-4"
                   aria-hidden="true"
                 >
-                  <circle cx="18" cy="5" r="2.5" />
-                  <circle cx="6" cy="12" r="2.5" />
-                  <circle cx="18" cy="19" r="2.5" />
-                  <path d="M8.3 11.2L15.7 6.8" />
-                  <path d="M8.3 12.8L15.7 17.2" />
+                  <path d="M12 3v12" />
+                  <path d="M8 7l4-4 4 4" />
+                  <path d="M4 13v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
                 </svg>
                 <span className="leading-none">Share</span>
               </button>
 
-              <div className="rounded-2xl border border-white/12 bg-black/45 px-3 py-2 text-right">
+              <div className="w-[140px] rounded-2xl border border-white/12 ring-1 ring-white/10 bg-black/45 px-3 py-2 text-right shadow-sm">
                 <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45">
                   Neynar Score
                 </div>
@@ -294,7 +293,7 @@ export default function HomePage() {
 
           {/* Score bar */}
           <div className="mt-5 rounded-2xl border border-white/12 bg-black/50 p-3">
-            <div className="flex items-start justify-between gap-3">
+            <div className="grid grid-cols-[1fr_auto] items-start gap-3">
               <div>
                 <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/45">
                   Quality signal
