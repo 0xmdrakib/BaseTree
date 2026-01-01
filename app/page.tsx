@@ -60,6 +60,9 @@ function describeScore(score: number | null): ScoreDescriptor {
   };
 }
 
+const SHARE_URL = "https://basetree.vercel.app";
+const SHARE_TEXT = "I just used Base Tree.";
+
 export default function HomePage() {
   const [isMiniAppEnv, setIsMiniAppEnv] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,6 +118,20 @@ export default function HomePage() {
       cancelled = true;
     };
   }, []);
+
+
+const handleShare = async () => {
+  try {
+    await sdk.actions.composeCast({
+      text: SHARE_TEXT,
+      embeds: [SHARE_URL],
+    });
+  } catch (err) {
+    console.error("composeCast failed:", err);
+    // Native-only: don't redirect to URLs. If the client doesn't support compose, tell the user.
+    alert("Sharing isn’t available in this client. Try Base app or Warpcast.");
+  }
+};
 
   const scoreDescriptor = useMemo(
     () => describeScore(profile?.neynarScore ?? null),
@@ -212,10 +229,38 @@ export default function HomePage() {
             </div>
 
             {/* Neynar score block (fixed alignment) */}
-            <div className="shrink-0 rounded-2xl border border-white/12 bg-black/45 px-3 py-2 text-right">
-              <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                Neynar Score
-              </div>
+<div className="flex shrink-0 flex-col items-end gap-2">
+  <button
+    type="button"
+    onClick={handleShare}
+    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/12 bg-black/45 text-white/80 shadow-sm backdrop-blur transition hover:bg-black/60 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30 active:scale-[0.98]"
+    aria-label="Share"
+    title="Share"
+  >
+
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <circle cx="18" cy="5" r="2" />
+      <circle cx="6" cy="12" r="2" />
+      <circle cx="18" cy="19" r="2" />
+      <line x1="8" y1="11" x2="16" y2="6" />
+      <line x1="8" y1="13" x2="16" y2="18" />
+    </svg>
+  </button>
+
+  <div className="rounded-2xl border border-white/12 bg-black/45 px-3 py-2 text-right">
+  <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45">
+    Neynar Score
+  </div>
+</div>
               <div className="mt-1 text-[18px] font-semibold tabular-nums text-white/95">
                 {score != null ? score.toFixed(2) : "N/A"}
               </div>
