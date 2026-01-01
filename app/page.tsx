@@ -66,12 +66,53 @@ export default function HomePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const SHARE_TEXT = "I just used Base Tree.";
+  const SHARE_URL = "https://basetree.vercel.app";
+
+  const handleShare = async () => {
+    try {
+      let insideMiniApp = await (sdk as any).isInMiniApp?.(1500).catch(() => false);
+        if (!insideMiniApp) {
+          const caps = await sdk.getCapabilities().catch(() => [] as string[]);
+          if (
+            caps.includes("actions.ready") ||
+            caps.includes("actions.sendToken") ||
+            caps.includes("actions.composeCast")
+          ) {
+            insideMiniApp = true;
+          }
+        }
+      if (!insideMiniApp) {
+        window.alert("Open inside Base App or Warpcast to share.");
+        return;
+      }
+
+      await sdk.actions.composeCast({
+        text: SHARE_TEXT,
+        embeds: [SHARE_URL],
+      });
+    } catch (e) {
+      console.error(e);
+      window.alert("Share is not available in this client.");
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
 
     async function bootstrap() {
       try {
-        const insideMiniApp = await sdk.isInMiniApp();
+        let insideMiniApp = await (sdk as any).isInMiniApp?.(1500).catch(() => false);
+        if (!insideMiniApp) {
+          const caps = await sdk.getCapabilities().catch(() => [] as string[]);
+          if (
+            caps.includes("actions.ready") ||
+            caps.includes("actions.sendToken") ||
+            caps.includes("actions.composeCast")
+          ) {
+            insideMiniApp = true;
+          }
+        }
 
         if (!insideMiniApp) {
           setIsMiniAppEnv(false);
@@ -183,6 +224,31 @@ export default function HomePage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
       <div className="relative w-full max-w-md">
+
+        <button
+          type="button"
+          onClick={handleShare}
+          className="absolute right-4 -top-12 z-30 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white/80 shadow-lg backdrop-blur-md transition hover:bg-black/50 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+          aria-label="Share"
+          title="Share"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4"
+            aria-hidden="true"
+          >
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <path d="M8.59 13.51L15.42 17.49" />
+            <path d="M15.41 6.51L8.59 10.49" />
+          </svg>
+        </button>
         <div className="pointer-events-none absolute inset-0 opacity-60 blur-3xl gradient-ring" />
 
         <div className="relative overflow-hidden rounded-3xl border border-white/12 bg-gradient-to-b from-white/6 via-card to-black/80 p-5 shadow-glow backdrop-blur-xl">
