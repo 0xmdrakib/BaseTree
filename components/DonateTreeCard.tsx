@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { pay } from "@base-org/account";
 import { sdk } from "@farcaster/miniapp-sdk";
+import { encodeFunctionData, parseUnits } from "viem";
 
 const RECIPIENT = "0x62233D5483515A79ac06CEcEbac7D399fDF8a99b";
 const OTP_VERIFY_URL = "https://onetreeplanted.org/pages/donate-crypto";
@@ -10,6 +12,23 @@ const USE_TESTNET = false;
 // Base Mainnet USDC (6 decimals)
 const BASE_USDC_CAIP19 =
   "eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+
+const BASE_USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const BASE_CHAIN_ID_HEX = "0x2105"; // 8453
+
+const ERC20_TRANSFER_ABI = [
+  {
+    type: "function",
+    name: "transfer",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "value", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+] as const;
+
 
 type Preset = "0.10" | "0.50" | "1.00" | "custom";
 type Status = "idle" | "processing" | "success" | "error";
@@ -35,13 +54,59 @@ function sanitizeAmount(input: string) {
 
 // Convert a decimal USDC string (e.g. "0.50") to base units (6 decimals) as a string.
 function toUsdcBaseUnits(amountStr: string): string {
-  const [wholeRaw, fracRaw = ""] = amountStr.split(".");
-  const whole = (wholeRaw || "0").replace(/^0+(?=\d)/, "");
-  const frac = (fracRaw + "000000").slice(0, 6);
+  // viem handles decimals safely and avoids floating point rounding issues
+  return parseUnits(amountStr, 6).toString();
+}
 
-  // BigInt math avoids float rounding bugs.
-  const units = BigInt(whole || "0") * BigInt("1000000") + BigInt(frac || "0");
-  return units.toString();
+async function sendUsdcViaEthereumProvider(amountStr: string): Promise<string> {
+  const provider: any = await sdk.wallet.getEthereumProvider();
+
+  // Ensure we have an account
+  const accounts: string[] =
+    (await provider.request({ method: "eth_requestAccounts" }).catch(() =>
+      provider.request({ method: "eth_accounts" }),
+    )) ?? [];
+
+  const from = accounts?.[0];
+  if (!from) throw new Error("Wallet not connected.");
+
+  // Ensure we are on Base
+  const chainId: string | null = await provider
+    .request({ method: "eth_chainId" })
+    .catch(() => null);
+
+  if (chainId && chainId.toLowerCase() !== BASE_CHAIN_ID_HEX) {
+    try {
+      await provider.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: BASE_CHAIN_ID_HEX }],
+      });
+    } catch {
+      throw new Error("Please switch your wallet network to Base and try again.");
+    }
+  }
+
+  const value = parseUnits(amountStr, 6);
+  const data = encodeFunctionData({
+    abi: ERC20_TRANSFER_ABI,
+    functionName: "transfer",
+    args: [RECIPIENT, value],
+  });
+
+  const txHash: string = await provider.request({
+    method: "eth_sendTransaction",
+    params: [
+      {
+        from,
+        to: BASE_USDC_ADDRESS,
+        data,
+        value: "0x0",
+      },
+    ],
+  });
+
+  if (!txHash || typeof txHash !== "string") throw new Error("Transaction failed.");
+  return txHash;
 }
 
 export default function DonateTreeCard() {
@@ -115,38 +180,61 @@ export default function DonateTreeCard() {
     setStatus("processing");
 
     try {
-      // ✅ Best path for Mini App hosts (Base app + Warpcast): use the native send flow.
-      let inMiniApp = await (sdk as any).isInMiniApp?.(1500).catch(() => false);
-      let capabilities = await sdk.getCapabilities().catch(() => [] as string[]);
-      if (!inMiniApp && capabilities.includes("actions.sendToken")) inMiniApp = true;
-      if (inMiniApp) {
-        if (!capabilities.includes("actions.sendToken")) {
-          throw new Error(
-            "Wallet not available in this client. Please update Base / Warpcast and try again.",
-          );
-        }
+      // ✅ Mini App hosts (Base app + Warpcast): prefer direct tx via Ethereum provider.
+// This shows the native "Confirm transaction" sheet (like your screenshots) instead of the
+// generic "Send" flow opened by actions.sendToken.
+const inMiniApp = await sdk.isInMiniApp().catch(() => false);
+if (inMiniApp) {
+  const capabilities = await sdk.getCapabilities().catch(() => [] as string[]);
 
-        const result = await sdk.actions.sendToken({
-          token: BASE_USDC_CAIP19,
-          amount: toUsdcBaseUnits(amount), // 6-decimal base units
-          recipientAddress: RECIPIENT,
-        });
+  // Best UX: direct EIP-1193 provider → eth_sendTransaction (confirm sheet)
+  if (capabilities.includes("wallet.getEthereumProvider")) {
+    const hash = await sendUsdcViaEthereumProvider(amount);
+    setTxHash(hash);
+    setStatus("success");
+    startTreeAnimation();
+    return;
+  }
 
-        if (result?.success) {
-          setTxHash(result.send.transaction);
-          setStatus("success");
-          startTreeAnimation();
-          return;
-        }
+  // Fallback UX: prefilled send form (host-controlled)
+  if (capabilities.includes("actions.sendToken")) {
+    const result = await sdk.actions.sendToken({
+      token: BASE_USDC_CAIP19,
+      amount: toUsdcBaseUnits(amount), // 6-decimal base units
+      recipientAddress: RECIPIENT,
+    });
 
-        // `reason` is a stable enum: rejected_by_user | send_failed
-        if (result?.reason === "rejected_by_user") {
-          throw new Error("Transaction rejected.");
-        }
-        throw new Error(result?.error?.message ?? "Send failed.");
-      }
-      // Not running inside a Mini App host — we intentionally do not redirect to external checkout.
-      throw new Error("Wallet not available. Open this mini app in Base app or Warpcast.");
+    if (result?.success) {
+      setTxHash(result.send.transaction);
+      setStatus("success");
+      startTreeAnimation();
+      return;
+    }
+
+    // `reason` is a stable enum: rejected_by_user | send_failed
+    if (result?.reason === "rejected_by_user") {
+      throw new Error("Transaction rejected.");
+    }
+    throw new Error(result?.error?.message ?? "Send failed.");
+  }
+
+  throw new Error(
+    "Wallet not available in this client. Please update Base / Warpcast and try again.",
+  );
+}
+
+// Fallback (regular browsers): Base Account checkout.
+      const res: any = await pay({
+        amount: n.toFixed(2),
+        to: RECIPIENT,
+        testnet: USE_TESTNET,
+      });
+
+      const hash = res?.transactionHash ?? res?.txHash ?? null;
+      if (typeof hash === "string" && hash.length > 10) setTxHash(hash);
+
+      setStatus("success");
+      startTreeAnimation();
     } catch (e: any) {
       setStatus("error");
       setError(e?.message ?? "Payment failed.");
