@@ -60,9 +60,6 @@ function describeScore(score: number | null): ScoreDescriptor {
   };
 }
 
-const SHARE_URL = "https://basetree.vercel.app";
-const SHARE_TEXT = "I just used Base Tree.";
-
 export default function HomePage() {
   const [isMiniAppEnv, setIsMiniAppEnv] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,18 +115,6 @@ export default function HomePage() {
       cancelled = true;
     };
   }, []);
-
-  const handleShare = async () => {
-    try {
-      await sdk.actions.composeCast({
-        text: SHARE_TEXT,
-        embeds: [SHARE_URL],
-      });
-    } catch (err) {
-      console.error("composeCast failed:", err);
-      alert("Sharing isn’t available in this client. Try Base app or Warpcast.");
-    }
-  };
 
   const scoreDescriptor = useMemo(
     () => describeScore(profile?.neynarScore ?? null),
@@ -202,7 +187,7 @@ export default function HomePage() {
 
         <div className="relative overflow-hidden rounded-3xl border border-white/12 bg-gradient-to-b from-white/6 via-card to-black/80 p-5 shadow-glow backdrop-blur-xl">
           {/* Header (fixed alignment, removed “Reputation Lens”) */}
-          <div className="grid grid-cols-[1fr_auto] items-start gap-3">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               {profile.pfpUrl ? (
                 <img
@@ -226,40 +211,13 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right rail (Share + score) */}
-            <div className="flex shrink-0 flex-col items-end gap-2">
-              {/* Keep both tiles same width for perfect alignment */}
-              <button
-                type="button"
-                onClick={handleShare}
-                className="w-[140px] inline-flex items-center justify-center gap-2 rounded-full border border-white/12 ring-1 ring-white/10 bg-white/5 px-3 py-2 text-[11px] font-semibold text-white/80 shadow-sm backdrop-blur transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30 active:scale-[0.98]"
-                aria-label="Share"
-                title="Share"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-4 w-4"
-                  aria-hidden="true"
-                >
-                  <path d="M12 3v12" />
-                  <path d="M8 7l4-4 4 4" />
-                  <path d="M4 13v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
-                </svg>
-                <span className="leading-none">Share</span>
-              </button>
-
-              <div className="w-[140px] rounded-2xl border border-white/12 ring-1 ring-white/10 bg-black/45 px-3 py-2 text-right shadow-sm">
-                <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                  Neynar Score
-                </div>
-                <div className="mt-1 text-[18px] font-semibold tabular-nums text-white/95">
-                  {score != null ? score.toFixed(2) : "N/A"}
-                </div>
+            {/* Neynar score block (fixed alignment) */}
+            <div className="shrink-0 rounded-2xl border border-white/12 bg-black/45 px-3 py-2 text-right">
+              <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                Neynar Score
+              </div>
+              <div className="mt-1 text-[18px] font-semibold tabular-nums text-white/95">
+                {score != null ? score.toFixed(2) : "N/A"}
               </div>
             </div>
           </div>
@@ -293,7 +251,7 @@ export default function HomePage() {
 
           {/* Score bar */}
           <div className="mt-5 rounded-2xl border border-white/12 bg-black/50 p-3">
-            <div className="grid grid-cols-[1fr_auto] items-start gap-3">
+            <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/45">
                   Quality signal
