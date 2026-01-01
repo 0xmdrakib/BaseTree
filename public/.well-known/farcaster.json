@@ -30,11 +30,11 @@
     "ogDescription": "View Base profile details and plant real trees onchain",
     "ogImageUrl": "https://basetree.vercel.app/hero.png",
     "noindex": true,
-    "requiredCapabilities": [
-      "wallet.getEthereumProvider"
-    ],
     "requiredChains": [
       "eip155:8453"
+    ],
+    "requiredCapabilities": [
+      "wallet.getEthereumProvider"
     ]
   }
 }
