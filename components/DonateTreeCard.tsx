@@ -1,28 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { pay } from "@base-org/account";
 import { sdk } from "@farcaster/miniapp-sdk";
-import { encodeFunctionData, parseUnits } from "viem";
 
 const RECIPIENT = "0x62233D5483515A79ac06CEcEbac7D399fDF8a99b";
-const BASE_CHAIN_ID = 8453;
-const BASE_CHAIN_ID_HEX = "0x2105";
-// Native USDC on Base (6 decimals)
-const USDC_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
-const ERC20_TRANSFER_ABI = [
-  {
-    type: "function",
-    name: "transfer",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "to", type: "address" },
-      { name: "amount", type: "uint256" },
-    ],
-    outputs: [{ name: "", type: "bool" }],
-  },
-] as const;
-
 const OTP_VERIFY_URL = "https://onetreeplanted.org/pages/donate-crypto";
+const USE_TESTNET = false;
+
+// Base Mainnet USDC (6 decimals)
+const BASE_USDC_CAIP19 =
+  "eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
 type Preset = "0.10" | "0.50" | "1.00" | "custom";
 type Status = "idle" | "processing" | "success" | "error";
@@ -44,6 +32,17 @@ function sanitizeAmount(input: string) {
   const n = Number(normalized);
   if (!Number.isFinite(n) || n <= 0) return "1.00";
   return n.toFixed(2);
+}
+
+// Convert a decimal USDC string (e.g. "0.50") to base units (6 decimals) as a string.
+function toUsdcBaseUnits(amountStr: string): string {
+  const [wholeRaw, fracRaw = ""] = amountStr.split(".");
+  const whole = (wholeRaw || "0").replace(/^0+(?=\d)/, "");
+  const frac = (fracRaw + "000000").slice(0, 6);
+
+  // BigInt math avoids float rounding bugs.
+  const units = BigInt(whole || "0") * 1_000_000n + BigInt(frac || "0");
+  return units.toString();
 }
 
 export default function DonateTreeCard() {
@@ -117,55 +116,47 @@ export default function DonateTreeCard() {
     setStatus("processing");
 
     try {
-      const provider = sdk.wallet.getEthereumProvider();
-      if (!provider || typeof (provider as any).request !== "function") {
-        throw new Error("Wallet not available. Open this mini app in Base or Warpcast.");
-      }
-
-      // Ensure we have a connected account
-      const accounts = (await (provider as any).request({
-        method: "eth_requestAccounts",
-      })) as string[];
-      const from = accounts?.[0];
-      if (!from) throw new Error("No wallet connected.");
-
-      // Ensure we are on Base
-      const chainIdHex = (await (provider as any).request({
-        method: "eth_chainId",
-      })) as string;
-
-      if ((chainIdHex ?? "").toLowerCase() !== BASE_CHAIN_ID_HEX) {
-        try {
-          await (provider as any).request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: BASE_CHAIN_ID_HEX }],
-          });
-        } catch {
-          throw new Error("Please switch your wallet to Base network and try again.");
+      // ✅ Best path for Mini App hosts (Base app + Warpcast): use the native send flow.
+      const inMiniApp = await sdk.isInMiniApp().catch(() => false);
+      if (inMiniApp) {
+        const capabilities = await sdk.getCapabilities().catch(() => [] as string[]);
+        if (!capabilities.includes("actions.sendToken")) {
+          throw new Error(
+            "Wallet not available in this client. Please update Base / Warpcast and try again.",
+          );
         }
+
+        const result = await sdk.actions.sendToken({
+          token: BASE_USDC_CAIP19,
+          amount: toUsdcBaseUnits(amount), // 6-decimal base units
+          recipientAddress: RECIPIENT,
+        });
+
+        if (result?.success) {
+          setTxHash(result.send.transaction);
+          setStatus("success");
+          startTreeAnimation();
+          return;
+        }
+
+        // `reason` is a stable enum: rejected_by_user | send_failed
+        if (result?.reason === "rejected_by_user") {
+          throw new Error("Transaction rejected.");
+        }
+        throw new Error(result?.error?.message ?? "Send failed.");
       }
 
-      // Send USDC transfer (native USDC on Base)
-      const amount = parseUnits(n.toFixed(2), 6);
-      const data = encodeFunctionData({
-        abi: ERC20_TRANSFER_ABI,
-        functionName: "transfer",
-        args: [RECIPIENT, amount],
+      // Fallback (regular browsers): Base Account checkout.
+      const res: any = await pay({
+        amount: n.toFixed(2),
+        to: RECIPIENT,
+        testnet: USE_TESTNET,
       });
 
-      const txHash = (await (provider as any).request({
-        method: "eth_sendTransaction",
-        params: [
-          {
-            from,
-            to: USDC_BASE,
-            data,
-            value: "0x0",
-          },
-        ],
-      })) as string;
+      const hash = res?.transactionHash ?? res?.txHash ?? null;
+      if (typeof hash === "string" && hash.length > 10) setTxHash(hash);
 
-      if (typeof txHash === "string" && txHash.startsWith("0x")) setTxHash(txHash);      setStatus("success");
+      setStatus("success");
       startTreeAnimation();
     } catch (e: any) {
       setStatus("error");
