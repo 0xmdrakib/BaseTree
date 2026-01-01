@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { pay } from "@base-org/account";
+import { sdk } from "@farcaster/miniapp-sdk";
+import { createWalletClient, custom, erc20Abi, parseUnits } from "viem";
+import { base } from "viem/chains";
 
 const RECIPIENT = "0x62233D5483515A79ac06CEcEbac7D399fDF8a99b";
+const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const OTP_VERIFY_URL = "https://onetreeplanted.org/pages/donate-crypto";
 const USE_TESTNET = false;
 
@@ -100,22 +103,63 @@ export default function DonateTreeCard() {
     setStatus("processing");
 
     try {
-      const res: any = await pay({
-        amount: n.toFixed(2),
-        to: RECIPIENT,
-        testnet: USE_TESTNET,
+      // If the host exposes capabilities, confirm wallet support.
+      try {
+        const capabilities = await sdk.getCapabilities();
+        if (!capabilities.includes("wallet.getEthereumProvider")) {
+          throw new Error("This client does not support wallet transactions for Mini Apps.");
+        }
+      } catch {
+        // Some hosts may not implement getCapabilities(); we'll attempt wallet anyway.
+      }
+
+      const provider = await sdk.wallet.getEthereumProvider();
+
+      // Ask for (or confirm) the connected account. Host handles the UX.
+      let accounts = (await provider.request({ method: "eth_accounts" })) as string[];
+      if (!accounts || accounts.length === 0) {
+        try {
+          accounts = (await provider.request({
+            method: "eth_requestAccounts",
+          })) as string[];
+        } catch {}
+      }
+      const account = accounts?.[0];
+      if (!account) throw new Error("No wallet connected.");
+
+      // Best-effort: ensure Base network (8453). Not all hosts support switching.
+      try {
+        await provider.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: `0x${base.id.toString(16)}` }],
+        });
+      } catch {}
+
+      const client = createWalletClient({
+        chain: base,
+        transport: custom(provider),
       });
 
-      const hash = res?.transactionHash ?? res?.txHash ?? null;
-      if (typeof hash === "string" && hash.length > 10) setTxHash(hash);
+      // USDC has 6 decimals on Base
+      const value = parseUnits(n.toFixed(2), 6);
 
+      const hash = await client.writeContract({
+        account: account as `0x${string}`,
+        address: USDC as `0x${string}`,
+        abi: erc20Abi,
+        functionName: "transfer",
+        args: [RECIPIENT as `0x${string}`, value],
+      });
+
+      setTxHash(hash);
       setStatus("success");
       startTreeAnimation();
     } catch (e: any) {
       setStatus("error");
-      setError(e?.message ?? "Payment failed.");
+      setError(e?.shortMessage ?? e?.message ?? "Payment failed.");
     }
   }
+
 
   const emoji = stage === 1 ? "🌱" : stage === 2 ? "🌿" : stage === 3 ? "🌳" : "🌱";
   const animText =
