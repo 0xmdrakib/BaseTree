@@ -8,29 +8,34 @@
     "version": "1",
     "name": "Base Tree",
     "homeUrl": "https://basetree.vercel.app",
-
     "iconUrl": "https://basetree.vercel.app/icon.png",
     "splashImageUrl": "https://basetree.vercel.app/splash.png",
     "splashBackgroundColor": "#050509",
-
     "subtitle": "Base profile and trees",
     "description": "View Base profile details and plant real trees onchain",
-
     "primaryCategory": "social",
-    "tags": ["base", "farcaster", "profile", "trees", "reputation"],
-
+    "tags": [
+      "base",
+      "farcaster",
+      "profile",
+      "trees",
+      "reputation"
+    ],
     "heroImageUrl": "https://basetree.vercel.app/hero.png",
-    "screenshotUrls": ["https://basetree.vercel.app/hero.png"],
-
+    "screenshotUrls": [
+      "https://basetree.vercel.app/hero.png"
+    ],
     "tagline": "Know your Base reputation",
-
-    "requiredChains": ["eip155:8453"],
-    "requiredCapabilities": ["actions.sendToken", "actions.composeCast"],
-
     "ogTitle": "Base Tree",
     "ogDescription": "View Base profile details and plant real trees onchain",
     "ogImageUrl": "https://basetree.vercel.app/hero.png",
-
-    "noindex": true
+    "noindex": true,
+    "requiredChains": [
+      "eip155:8453"
+    ],
+    "requiredCapabilities": [
+      "actions.sendToken",
+      "actions.composeCast"
+    ]
   }
 }
