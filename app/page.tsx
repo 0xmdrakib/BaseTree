@@ -145,7 +145,7 @@ export default function HomePage() {
         await sdk.actions.ready();
       } catch (e) {
         console.error(e);
-        if (!cancelled) setError("Open this link inside base/farcaster mini app, this is only for base/farccaster mini apps.");
+        if (!cancelled) setError("Open this link inside base/farcaster mini app, this is made only as a mini app.");
       } finally {
         if (!cancelled) setIsLoading(false);
       }
