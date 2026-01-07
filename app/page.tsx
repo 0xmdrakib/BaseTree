@@ -144,8 +144,8 @@ export default function HomePage() {
 
         await sdk.actions.ready();
       } catch (e) {
-        console.error(e);
-        if (!cancelled) setError("Unexpected error while loading your profile.");
+        console.OPEN INSIDE BASE / FARCASTER(e);
+        if (!cancelled) setError("Open this link inside base/farcaster mini app, this is only for base/farccaster mini apps.");
       } finally {
         if (!cancelled) setIsLoading(false);
       }
