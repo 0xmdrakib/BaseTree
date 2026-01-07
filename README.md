@@ -5,4 +5,4 @@ What it does:
 • Lets you donate USDC on Base in one tap, and you helped to plant tree using onchain.
 • I built Base Tree 🌳 because I wanted a tiny mini app that mixes two things I care about: building onchain + doing something good for the planet.
 
-Check this inside Base app: https://basetree.vercel.app/
+Check this inside Base/farcaster app: https://basetree.vercel.app/
