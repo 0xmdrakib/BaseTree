@@ -123,7 +123,10 @@ export default function HomePage() {
 
         setIsMiniAppEnv(true);
 
-        const context = await sdk.context;
+        const context = await Promise.race([
+          sdk.context,
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Context timeout")), 2500))
+        ]) as any;
         const fid = context.user?.fid;
 
         if (!fid) {
