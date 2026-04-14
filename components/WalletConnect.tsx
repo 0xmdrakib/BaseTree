@@ -149,9 +149,9 @@ export default function WalletConnect() {
               ) : (
                 availableWallets.map((wallet) => (
                   <button
-                    key={wallet.info.uuid}
+                    key={wallet.info.rdns}
                     onClick={() => {
-                      connectWallet(wallet.info.uuid);
+                      connectWallet(wallet.info.rdns);
                       setIsOpen(false);
                     }}
                     className="flex w-full items-center justify-between rounded-2xl border border-white/5 bg-white/5 p-3 transition hover:border-white/15 hover:bg-white/10"
