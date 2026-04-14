@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { pay } from "@base-org/account";
 import { sdk } from "@farcaster/miniapp-sdk";
-import { encodeFunctionData, parseUnits, concatHex } from "viem";
-import { Attribution } from "ox/erc8021";
+import { encodeFunctionData, parseUnits, concatHex, stringToHex } from "viem";
 import { useWallet } from "./WalletProvider";
 
 const RECIPIENT = "0x62233D5483515A79ac06CEcEbac7D399fDF8a99b";
@@ -12,8 +11,16 @@ const OTP_VERIFY_URL = "https://onetreeplanted.org/pages/donate-crypto";
 const USE_TESTNET = false;
 
 // Add your Builder Code here from base.dev
-const BUILDER_CODE = "bc_uu5mz1sd"; // Replace with your actual Builder Code
-const DATA_SUFFIX = Attribution.toDataSuffix({ codes: [BUILDER_CODE] });
+const BUILDER_CODE = "bc_XXXXXXXX"; // Replace with your actual Builder Code
+
+// Generates an ERC-8021 data suffix without external failing dependencies
+function toDataSuffix(code: string): `0x${string}` {
+  const hexStr = stringToHex(code);
+  const len = code.length.toString(16).padStart(2, "0");
+  return concatHex([hexStr, `0x${len}00`, "0x80218021802180218021802180218021"]);
+}
+
+const DATA_SUFFIX = toDataSuffix(BUILDER_CODE);
 
 // Base Mainnet USDC (6 decimals)
 const BASE_USDC_CAIP19 =
