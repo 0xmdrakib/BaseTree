@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { WalletProvider } from "../components/WalletProvider";
 
@@ -29,6 +29,15 @@ const FRAME_EMBED = {
       type: "launch_frame"
     }
   }
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#050509",
 };
 
 export const metadata: Metadata = {
