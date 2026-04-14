@@ -11,7 +11,7 @@ const OTP_VERIFY_URL = "https://onetreeplanted.org/pages/donate-crypto";
 const USE_TESTNET = false;
 
 // Add your Builder Code here from base.dev
-const BUILDER_CODE = "bc_XXXXXXXX"; // Replace with your actual Builder Code
+const BUILDER_CODE = "bc_uu5mz1sd";
 
 // Generates an ERC-8021 data suffix without external failing dependencies
 function toDataSuffix(code: string): `0x${string}` {
