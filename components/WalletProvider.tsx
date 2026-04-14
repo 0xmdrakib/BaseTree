@@ -126,8 +126,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         setProviderDetails(selected);
       }
     } catch (e: any) {
-      console.error(e);
-      alert(e?.message ?? "Connection request failed.");
+      console.error("Wallet connection cancelled or failed:", e);
+      // Removed the ugly alert(e?.message) so users don't see native popups when rejecting
     }
   };
 
