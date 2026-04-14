@@ -24,7 +24,7 @@ interface WalletContextType {
   address: string | null;
   providerDetails: EIP6963ProviderDetail | null; // active provider
   availableWallets: EIP6963ProviderDetail[];
-  connectWallet: (uuid: string) => Promise<void>;
+  connectWallet: (rdns: string) => Promise<void>;
   disconnectWallet: () => void;
 }
 
@@ -40,7 +40,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     function onAnnounceProvider(event: EIP6963AnnounceProviderEvent) {
       setAvailableWallets((prevMap) => {
         const newMap = new Map(prevMap);
-        newMap.set(event.detail.info.uuid, event.detail);
+        newMap.set(event.detail.info.rdns, event.detail);
         return newMap;
       });
     }
@@ -63,7 +63,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         if (prevMap.size === 0 && (window as any).ethereum) {
           const newMap = new Map(prevMap);
           // Add a generic fallback provider wrapper
-          newMap.set("fallback", {
+          newMap.set("io.metamask.fallback", {
             info: {
               uuid: "fallback",
               name: "Injected Wallet",
@@ -106,10 +106,10 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   // Restore connection on mount
   useEffect(() => {
-    const savedUuid = localStorage.getItem("connected_wallet_uuid");
-    if (!savedUuid || address) return;
+    const savedRdns = localStorage.getItem("connected_wallet_rdns");
+    if (!savedRdns || address) return;
 
-    const selected = availableWallets.get(savedUuid);
+    const selected = availableWallets.get(savedRdns);
     if (!selected) return;
 
     selected.provider.request({ method: "eth_accounts" })
@@ -122,8 +122,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       .catch(() => {});
   }, [availableWallets, address]);
 
-  const connectWallet = async (uuid: string) => {
-    const selected = availableWallets.get(uuid);
+  const connectWallet = async (rdns: string) => {
+    const selected = availableWallets.get(rdns);
     if (!selected) {
       alert("Wallet extension not found.");
       return;
@@ -139,7 +139,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       if (accounts.length > 0) {
         setAddress(accounts[0]);
         setProviderDetails(selected);
-        localStorage.setItem("connected_wallet_uuid", uuid);
+        localStorage.setItem("connected_wallet_rdns", rdns);
       }
     } catch (e: any) {
       console.error("Wallet connection cancelled or failed:", e);
@@ -150,7 +150,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const disconnectWallet = () => {
     setAddress(null);
     setProviderDetails(null);
-    localStorage.removeItem("connected_wallet_uuid");
+    localStorage.removeItem("connected_wallet_rdns");
   };
 
   return (
