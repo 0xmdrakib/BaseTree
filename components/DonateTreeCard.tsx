@@ -264,18 +264,10 @@ if (!inMiniApp && providerDetails && connectedAddress) {
   return;
 }
 
-// Fallback (regular browsers, no local wallet): Base Account checkout.
-      const res: any = await pay({
-        amount: n.toFixed(2),
-        to: RECIPIENT,
-        testnet: USE_TESTNET,
-      });
-
-      const hash = res?.transactionHash ?? res?.txHash ?? null;
-      if (typeof hash === "string" && hash.length > 10) setTxHash(hash);
-
-      setStatus("success");
-      startTreeAnimation();
+// Web fallback: Require wallet connection instead of silent checkout
+if (!inMiniApp) {
+  throw new Error("Please connect your wallet using the 'Connect Wallet' button first.");
+}
     } catch (e: any) {
       setStatus("error");
       setError(e?.message ?? "Payment failed.");
