@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import DonateTreeCard from "../components/DonateTreeCard";
+import WalletConnect from "../components/WalletConnect";
 
 type Profile = {
   fid: number;
@@ -144,8 +145,11 @@ export default function HomePage() {
 
         await sdk.actions.ready();
       } catch (e) {
-        console.error(e);
-        if (!cancelled) setError("Open this link inside base/farcaster mini app, this is made only as a mini app.");
+        console.error("Bootstrap error:", e);
+        if (!cancelled) {
+          // Gracefully fallback to standard web app if any mini-app SDK calls fail
+          setIsMiniAppEnv(false);
+        }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -157,26 +161,29 @@ export default function HomePage() {
     };
   }, []);
 
-  const scoreDescriptor = useMemo(
-    () => describeScore(profile?.neynarScore ?? null),
-    [profile?.neynarScore],
-  );
+  const isAnonymous = isMiniAppEnv === false || !profile;
+  const displayProfile: any = isAnonymous
+    ? {
+        username: "earth_guardian",
+        displayName: "Anonymous Planter",
+        pfpUrl: null,
+        followerCount: "Global",
+        followingCount: "Impact",
+        fid: "Eco",
+        neynarScore: null,
+      }
+    : profile;
 
-  if (isMiniAppEnv === false) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-background px-6">
-        <div className="max-w-md rounded-3xl border border-white/10 bg-card/80 p-6 text-sm text-white/80">
-          <div className="text-xs uppercase tracking-[0.25em] text-white/40">
-            Farcaster Mini App
-          </div>
-          <h1 className="mt-3 text-lg font-semibold">Open inside Base App or Warpcast</h1>
-          <p className="mt-2 text-sm text-white/60">
-            This tool runs as a Farcaster / Base mini app.
-          </p>
-        </div>
-      </main>
-    );
-  }
+  const score = displayProfile?.neynarScore;
+  const scoreDescriptor = useMemo(() => {
+    if (isAnonymous) {
+      return {
+        label: "Signal: Environmental",
+        summary: "Planting trees improves global impact. View onchain receipts to verify.",
+      };
+    }
+    return describeScore(score ?? null);
+  }, [score, isAnonymous]);
 
   if (isLoading) {
     return (
@@ -217,13 +224,10 @@ export default function HomePage() {
     );
   }
 
-  if (!profile) return null;
-
-  const score = profile.neynarScore;
-
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-md mt-6">
+        <WalletConnect />
 
         <button
           type="button"
@@ -252,63 +256,61 @@ export default function HomePage() {
         <div className="pointer-events-none absolute inset-0 opacity-60 blur-3xl gradient-ring" />
 
         <div className="relative overflow-hidden rounded-3xl border border-white/12 bg-gradient-to-b from-white/6 via-card to-black/80 p-5 shadow-glow backdrop-blur-xl">
-          {/* Header (fixed alignment, removed “Reputation Lens”) */}
+          {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              {profile.pfpUrl ? (
+              {displayProfile.pfpUrl ? (
                 <img
-                  src={profile.pfpUrl}
-                  alt={profile.username}
+                  src={displayProfile.pfpUrl}
+                  alt={displayProfile.username}
                   className="h-12 w-12 shrink-0 rounded-2xl border border-white/15 object-cover"
                 />
               ) : (
-                <div className="h-12 w-12 shrink-0 rounded-2xl border border-white/10 bg-white/5" />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-emerald-500/10 text-2xl">
+                  🌿
+                </div>
               )}
 
               <div className="min-w-0">
-                {/* c) Name then username then FID */}
                 <div className="truncate text-[17px] font-semibold leading-tight text-white/95">
-                  {profile.displayName || profile.username}
+                  {displayProfile.displayName || displayProfile.username}
                 </div>
                 <div className="mt-1 truncate text-xs font-medium text-white/60">
-                  @{profile.username}
+                  @{displayProfile.username}
                 </div>
-                <div className="mt-1 text-[11px] text-white/45">FID: {profile.fid}</div>
+                <div className="mt-1 text-[11px] text-white/45">FID: {displayProfile.fid}</div>
               </div>
             </div>
 
-            {/* Neynar score block (fixed alignment) */}
+            {/* Neynar score / Impact block */}
             <div className="shrink-0 rounded-2xl border border-white/12 bg-black/45 px-3 py-2 text-right">
               <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                Neynar Score
+                {isAnonymous ? "Global Need" : "Neynar Score"}
               </div>
-              <div className="mt-1 text-[18px] font-semibold tabular-nums text-white/95">
-                {score != null ? score.toFixed(2) : "N/A"}
+              <div className="mt-1 text-[18px] font-semibold tabular-nums text-white/95 text-emerald-400">
+                {isAnonymous ? "High" : (score != null ? score.toFixed(2) : "N/A")}
               </div>
             </div>
           </div>
 
-          {/* Metrics (fix label wrap / misalignment) */}
+          {/* Metrics */}
           <div className="mt-5 grid grid-cols-3 gap-2 text-center">
             {[
-              { label: "Followers", value: profile.followerCount.toLocaleString() },
-              { label: "Following", value: profile.followingCount.toLocaleString() },
+              { label: isAnonymous ? "Objective" : "Followers", value: isAnonymous ? "Plant Trees" : displayProfile.followerCount.toLocaleString() },
+              { label: isAnonymous ? "Your Impact" : "Following", value: isAnonymous ? "Ready" : displayProfile.followingCount.toLocaleString() },
               {
-                label: "Follow Ratio",
-                value:
-                  profile.followingCount === 0
-                    ? "—"
-                    : (profile.followerCount / profile.followingCount).toFixed(2),
+                label: isAnonymous ? "Blockchain" : "Follow Ratio",
+                value: isAnonymous ? "Base Mainnet" : (displayProfile.followingCount === 0 ? "—" : (displayProfile.followerCount / displayProfile.followingCount).toFixed(2)),
               },
             ].map((item) => (
               <div
-                key={item.label}
-                className="flex flex-col items-center justify-center rounded-2xl border border-white/12 bg-black/40 px-2 py-3"
+                 key={item.label}
+                 className="flex flex-col items-center justify-center rounded-2xl border border-white/12 bg-black/40 px-2 py-3"
               >
                 <div className="whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.16em] text-white/45">
                   {item.label}
                 </div>
-                <div className="mt-1 text-sm font-semibold tabular-nums text-white/95">
+                <div className="mt-1 text-[11px] sm:text-sm font-semibold text-white/95 truncate w-full">
                   {item.value}
                 </div>
               </div>
@@ -327,7 +329,7 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="w-28 text-right text-[10px] leading-tight text-white/55">
-                Score is between 0 and 1
+                {isAnonymous ? "Every wallet matters" : "Score is between 0 and 1"}
               </div>
             </div>
 
@@ -335,10 +337,7 @@ export default function HomePage() {
               <div
                 className="h-2 rounded-full bg-gradient-to-r from-accent-soft via-accent to-emerald-400"
                 style={{
-                  width:
-                    score == null
-                      ? "0%"
-                      : `${Math.min(Math.max(score * 100, 2), 100)}%`,
+                   width: isAnonymous ? "100%" : (score == null ? "0%" : `${Math.min(Math.max(score * 100, 2), 100)}%`),
                 }}
               />
             </div>
@@ -350,12 +349,12 @@ export default function HomePage() {
 
           {/* Tree donation card */}
           <div className="mt-5">
-            <DonateTreeCard />
+             <DonateTreeCard />
           </div>
 
           {/* Footer */}
           <div className="mt-4 text-[10px] text-white/40">
-            Data via Neynar · updates weekly based on onchain & social graph
+             {isAnonymous ? "Start donating with your connected wallet · Base Network" : "Data via Neynar · updates weekly based on onchain & social graph"}
           </div>
         </div>
       </div>
