@@ -444,17 +444,21 @@ if (!inMiniApp) {
       <style jsx global>{`
         .sprout-fade {
           animation: sproutFade 3000ms ease-in-out both;
+          will-change: transform, opacity;
+          transform: translateZ(0);
         }
         @keyframes sproutFade {
-          0% { transform: translateY(15px) scale(0.9); opacity: 0; filter: blur(4px); }
-          10% { opacity: 1; filter: blur(0px); }
-          85% { opacity: 1; transform: translateY(-5px) scale(1.05); filter: blur(0px); box-shadow: 0 0 25px rgba(16,185,129,0.3); }
-          100% { transform: translateY(-20px) scale(1.15); opacity: 0; filter: blur(6px); }
+          0% { transform: translateY(15px) scale(0.9); opacity: 0; }
+          10% { opacity: 1; }
+          85% { opacity: 1; transform: translateY(-5px) scale(1.05); box-shadow: 0 0 25px rgba(16,185,129,0.3); }
+          100% { transform: translateY(-20px) scale(1.15); opacity: 0; }
         }
 
         .sprout-bounce {
           animation: sproutBounce 1200ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
           text-shadow: 0 0 15px rgba(16,185,129,0.6);
+          will-change: transform;
+          transform: translateZ(0);
         }
         @keyframes sproutBounce {
           0% { transform: translateY(15px) scale(0.8); opacity: 0; }
@@ -470,11 +474,12 @@ if (!inMiniApp) {
           opacity: 0;
           box-shadow: 0 0 8px currentColor;
           animation: particleUp 2000ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+          will-change: transform, opacity;
         }
         @keyframes particleUp {
-          0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
-          20% { opacity: 1; transform: translate(calc(var(--x) * 0.3), calc(var(--y) * 0.3)) scale(1.2); }
-          100% { transform: translate(var(--x), var(--y)) scale(0.2); opacity: 0; }
+          0% { transform: translate3d(0, 0, 0) scale(0.5); opacity: 0; }
+          20% { opacity: 1; transform: translate3d(calc(var(--x) * 0.3), calc(var(--y) * 0.3), 0) scale(1.2); }
+          100% { transform: translate3d(var(--x), var(--y), 0) scale(0.2); opacity: 0; }
         }
 
         .p1 { left: 16px; top: 16px; --x: -25px; --y: -40px; animation-delay: 100ms; background: rgba(52,211,153,0.9); color: rgba(52,211,153,0.9); }
