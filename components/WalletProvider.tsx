@@ -104,8 +104,31 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     };
   }, [providerDetails]);
 
-  // Handle restoring connection on load if we have a persisted extension choice
-  // (In a real app, you might save in localStorage, here we keep it session-based for simplicity)
+  // Restore connection on mount
+  useEffect(() => {
+    const savedUuid = localStorage.getItem("connected_wallet_uuid");
+    if (!savedUuid) return;
+
+    const timer = setTimeout(() => {
+      const selectedMap = new Map(availableWallets.map(w => [w.info.uuid, w]));
+      const selected = selectedMap.get(savedUuid);
+      
+      if (selected) {
+         selected.provider.request({ method: "eth_accounts" })
+           .then((accounts: string[]) => {
+               if (accounts && accounts.length > 0) {
+                 setAddress(accounts[0]);
+                 setProviderDetails(selected);
+               } else {
+                 localStorage.removeItem("connected_wallet_uuid");
+               }
+           })
+           .catch(() => {});
+      }
+    }, 600);
+    
+    return () => clearTimeout(timer);
+  }, [availableWallets]);
 
   const connectWallet = async (uuid: string) => {
     const selected = availableWallets.get(uuid);
@@ -124,6 +147,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       if (accounts.length > 0) {
         setAddress(accounts[0]);
         setProviderDetails(selected);
+        localStorage.setItem("connected_wallet_uuid", uuid);
       }
     } catch (e: any) {
       console.error("Wallet connection cancelled or failed:", e);
@@ -134,6 +158,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const disconnectWallet = () => {
     setAddress(null);
     setProviderDetails(null);
+    localStorage.removeItem("connected_wallet_uuid");
   };
 
   return (
