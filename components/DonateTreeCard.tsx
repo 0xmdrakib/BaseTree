@@ -3,12 +3,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { pay } from "@base-org/account";
 import { sdk } from "@farcaster/miniapp-sdk";
-import { encodeFunctionData, parseUnits } from "viem";
+import { encodeFunctionData, parseUnits, concatHex } from "viem";
+import { Attribution } from "ox/erc8021";
 import { useWallet } from "./WalletProvider";
 
 const RECIPIENT = "0x62233D5483515A79ac06CEcEbac7D399fDF8a99b";
 const OTP_VERIFY_URL = "https://onetreeplanted.org/pages/donate-crypto";
 const USE_TESTNET = false;
+
+// Add your Builder Code here from base.dev
+const BUILDER_CODE = "bc_XXXXXXXX"; // Replace with your actual Builder Code
+const DATA_SUFFIX = Attribution.toDataSuffix({ codes: [BUILDER_CODE] });
 
 // Base Mainnet USDC (6 decimals)
 const BASE_USDC_CAIP19 =
@@ -94,13 +99,15 @@ async function sendUsdcViaEthereumProvider(amountStr: string): Promise<string> {
     args: [RECIPIENT, value],
   });
 
+  const dataWithBuilderCode = concatHex([data, DATA_SUFFIX as `0x${string}`]);
+
   const txHash: string = await provider.request({
     method: "eth_sendTransaction",
     params: [
       {
         from,
         to: BASE_USDC_ADDRESS,
-        data,
+        data: dataWithBuilderCode,
         value: "0x0",
       },
     ],
@@ -247,12 +254,14 @@ if (!inMiniApp && providerDetails && connectedAddress) {
     args: [RECIPIENT, value],
   });
 
+  const dataWithBuilderCode = concatHex([data, DATA_SUFFIX as `0x${string}`]);
+
   const txHash = await _provider.request({
     method: "eth_sendTransaction",
     params: [{
       from: connectedAddress,
       to: BASE_USDC_ADDRESS,
-      data,
+      data: dataWithBuilderCode,
       value: "0x0"
     }],
   });
