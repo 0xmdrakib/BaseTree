@@ -102,7 +102,7 @@ export default function HomePage() {
     let cancelled = false;
 
     async function bootstrap() {
-      try {
+      const initTask = async () => {
         let insideMiniApp = await (sdk as any).isInMiniApp?.(1500).catch(() => false);
         if (!insideMiniApp) {
           const caps = await sdk.getCapabilities().catch(() => [] as string[]);
@@ -123,10 +123,7 @@ export default function HomePage() {
 
         setIsMiniAppEnv(true);
 
-        const context = await Promise.race([
-          sdk.context,
-          new Promise((_, reject) => setTimeout(() => reject(new Error("Context timeout")), 2500))
-        ]) as any;
+        const context = await sdk.context;
         const fid = context.user?.fid;
 
         if (!fid) {
@@ -147,6 +144,13 @@ export default function HomePage() {
         if (!cancelled) setProfile(data);
 
         await sdk.actions.ready();
+      };
+
+      try {
+        await Promise.race([
+          initTask(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Global Context timeout")), 3500))
+        ]);
       } catch (e) {
         console.error("Bootstrap error:", e);
         if (!cancelled) {
