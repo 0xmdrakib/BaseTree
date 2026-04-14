@@ -149,7 +149,7 @@ export default function HomePage() {
       try {
         await Promise.race([
           initTask(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("Global Context timeout")), 300))
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Global Context timeout")), 600))
         ]);
       } catch (e) {
         console.error("Bootstrap error:", e);
@@ -232,7 +232,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="flex min-h-[100svh] w-full flex-col items-center justify-start pt-20 pb-8 sm:justify-center sm:py-8 bg-background px-4">
+    <main className="flex min-h-[100dvh] w-full flex-col items-center justify-start pt-20 pb-8 sm:justify-center sm:py-8 bg-background px-4">
       <div className="relative w-full max-w-md sm:mt-0">
         <WalletConnect />
 
