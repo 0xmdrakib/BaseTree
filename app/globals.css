@@ -6,8 +6,20 @@
   color-scheme: dark;
 }
 
+html, body {
+  overscroll-behavior-y: none;
+}
+
+html {
+  height: -webkit-fill-available;
+}
+
 body {
   @apply bg-background text-white antialiased;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .gradient-ring {
