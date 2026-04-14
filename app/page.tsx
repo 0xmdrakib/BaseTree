@@ -232,8 +232,8 @@ export default function HomePage() {
   }
 
   return (
-    <main className="flex min-h-[100dvh] flex-col items-center justify-start sm:justify-center bg-background px-4 py-16 sm:py-8">
-      <div className="relative w-full max-w-md mt-6 sm:mt-0">
+    <main className="flex min-h-[100svh] w-full flex-col items-center justify-start pt-20 pb-8 sm:justify-center sm:py-8 bg-background px-4">
+      <div className="relative w-full max-w-md sm:mt-0">
         <WalletConnect />
 
         <button
