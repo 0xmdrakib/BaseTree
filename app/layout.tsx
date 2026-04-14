@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { WalletProvider } from "../components/WalletProvider";
 
 const APP_URL = "https://basetree.vercel.app";
 const BASE_APP_ID = "693d425ed77c069a945bde51"; // from Base Build modal
@@ -51,7 +52,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <WalletProvider>
+          {children}
+        </WalletProvider>
+      </body>
     </html>
   );
 }
