@@ -110,8 +110,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     if (!savedUuid) return;
 
     const timer = setTimeout(() => {
-      const selectedMap = new Map(availableWallets.map(w => [w.info.uuid, w]));
-      const selected = selectedMap.get(savedUuid);
+      const selected = availableWallets.get(savedUuid);
       
       if (selected) {
          selected.provider.request({ method: "eth_accounts" })
