@@ -107,25 +107,20 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   // Restore connection on mount
   useEffect(() => {
     const savedUuid = localStorage.getItem("connected_wallet_uuid");
-    if (!savedUuid) return;
+    if (!savedUuid || address) return;
 
-    const timer = setTimeout(() => {
-      const selected = availableWallets.get(savedUuid);
-      
-      if (selected && !address) {
-         selected.provider.request({ method: "eth_accounts" })
-           .then((accounts: string[]) => {
-               if (accounts && accounts.length > 0) {
-                 setAddress(accounts[0]);
-                 setProviderDetails(selected);
-               }
-           })
-           .catch(() => {});
-      }
-    }, 600);
-    
-    return () => clearTimeout(timer);
-  }, [availableWallets]);
+    const selected = availableWallets.get(savedUuid);
+    if (!selected) return;
+
+    selected.provider.request({ method: "eth_accounts" })
+      .then((accounts: string[]) => {
+          if (accounts && accounts.length > 0) {
+            setAddress(accounts[0]);
+            setProviderDetails(selected);
+          }
+      })
+      .catch(() => {});
+  }, [availableWallets, address]);
 
   const connectWallet = async (uuid: string) => {
     const selected = availableWallets.get(uuid);
