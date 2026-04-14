@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { pay } from "@base-org/account";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { encodeFunctionData, parseUnits } from "viem";
+import { useWallet } from "./WalletProvider";
 
 const RECIPIENT = "0x62233D5483515A79ac06CEcEbac7D399fDF8a99b";
 const OTP_VERIFY_URL = "https://onetreeplanted.org/pages/donate-crypto";
@@ -110,6 +111,7 @@ async function sendUsdcViaEthereumProvider(amountStr: string): Promise<string> {
 }
 
 export default function DonateTreeCard() {
+  const { providerDetails, address: connectedAddress } = useWallet();
   const [preset, setPreset] = useState<Preset>("0.50");
   const [custom, setCustom] = useState("1.00");
 
@@ -152,12 +154,12 @@ export default function DonateTreeCard() {
     setStage(1);
 
     timers.current.push(
-      window.setTimeout(() => setStage(2), 380),
-      window.setTimeout(() => setStage(3), 820),
+      window.setTimeout(() => setStage(2), 800),
+      window.setTimeout(() => setStage(3), 1800),
       window.setTimeout(() => {
         setShowAnim(false);
         setStage(0);
-      }, 1600),
+      }, 3000),
     );
   }
 
@@ -223,7 +225,46 @@ if (inMiniApp) {
   );
 }
 
-// Fallback (regular browsers): Base Account checkout.
+// Regular Browser with Injected Wallet connected
+if (!inMiniApp && providerDetails && connectedAddress) {
+  const _provider = providerDetails.provider;
+  const chainId = await _provider.request({ method: "eth_chainId" }).catch(() => null);
+  if (chainId && chainId.toLowerCase() !== BASE_CHAIN_ID_HEX) {
+    try {
+      await _provider.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: BASE_CHAIN_ID_HEX }],
+      });
+    } catch {
+      throw new Error("Please switch your wallet network to Base and try again.");
+    }
+  }
+
+  const value = parseUnits(amount, 6);
+  const data = encodeFunctionData({
+    abi: ERC20_TRANSFER_ABI,
+    functionName: "transfer",
+    args: [RECIPIENT, value],
+  });
+
+  const txHash = await _provider.request({
+    method: "eth_sendTransaction",
+    params: [{
+      from: connectedAddress,
+      to: BASE_USDC_ADDRESS,
+      data,
+      value: "0x0"
+    }],
+  });
+        
+  if (!txHash || typeof txHash !== "string") throw new Error("Transaction failed.");
+  setTxHash(txHash);
+  setStatus("success");
+  startTreeAnimation();
+  return;
+}
+
+// Fallback (regular browsers, no local wallet): Base Account checkout.
       const res: any = await pay({
         amount: n.toFixed(2),
         to: RECIPIENT,
@@ -410,21 +451,23 @@ if (inMiniApp) {
 
       <style jsx global>{`
         .sprout-fade {
-          animation: sproutFade 1600ms ease-out both;
+          animation: sproutFade 3000ms ease-in-out both;
         }
         @keyframes sproutFade {
-          0% { transform: translateY(10px) scale(0.98); opacity: 0; }
-          18% { opacity: 1; }
-          85% { opacity: 1; }
-          100% { transform: translateY(-8px) scale(1); opacity: 0; }
+          0% { transform: translateY(15px) scale(0.9); opacity: 0; filter: blur(4px); }
+          10% { opacity: 1; filter: blur(0px); }
+          85% { opacity: 1; transform: translateY(-5px) scale(1.05); filter: blur(0px); box-shadow: 0 0 25px rgba(16,185,129,0.3); }
+          100% { transform: translateY(-20px) scale(1.15); opacity: 0; filter: blur(6px); }
         }
 
         .sprout-bounce {
-          animation: sproutBounce 500ms ease-out both;
+          animation: sproutBounce 1200ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          text-shadow: 0 0 15px rgba(16,185,129,0.6);
         }
         @keyframes sproutBounce {
-          0% { transform: translateY(6px); opacity: 0; }
-          100% { transform: translateY(0); opacity: 1; }
+          0% { transform: translateY(15px) scale(0.8); opacity: 0; }
+          50% { transform: translateY(-5px) scale(1.1); opacity: 1; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
         }
 
         .particle {
@@ -432,21 +475,21 @@ if (inMiniApp) {
           width: 6px;
           height: 6px;
           border-radius: 999px;
-          background: rgba(139, 92, 246, 0.85);
           opacity: 0;
-          animation: particleUp 900ms ease-out both;
+          box-shadow: 0 0 8px currentColor;
+          animation: particleUp 2000ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
         }
         @keyframes particleUp {
-          0% { transform: translate(0, 0) scale(0.9); opacity: 0; }
-          20% { opacity: 0.9; }
-          100% { transform: translate(var(--x), var(--y)) scale(0.6); opacity: 0; }
+          0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+          20% { opacity: 1; transform: translate(calc(var(--x) * 0.3), calc(var(--y) * 0.3)) scale(1.2); }
+          100% { transform: translate(var(--x), var(--y)) scale(0.2); opacity: 0; }
         }
 
-        .p1 { left: 16px; top: 16px; --x: -16px; --y: -26px; animation-delay: 80ms; }
-        .p2 { right: 16px; top: 18px; --x: 14px; --y: -24px; animation-delay: 120ms; }
-        .p3 { left: 20px; bottom: 18px; --x: -10px; --y: 18px; animation-delay: 160ms; background: rgba(16,185,129,0.85); }
-        .p4 { right: 22px; bottom: 16px; --x: 12px; --y: 20px; animation-delay: 200ms; background: rgba(59,130,246,0.85); }
-        .p5 { left: 50%; top: 10px; --x: 0px; --y: -28px; animation-delay: 140ms; transform: translateX(-50%); }
+        .p1 { left: 16px; top: 16px; --x: -25px; --y: -40px; animation-delay: 100ms; background: rgba(52,211,153,0.9); color: rgba(52,211,153,0.9); }
+        .p2 { right: 16px; top: 18px; --x: 25px; --y: -35px; animation-delay: 200ms; background: rgba(16,185,129,0.9); color: rgba(16,185,129,0.9); }
+        .p3 { left: 20px; bottom: 18px; --x: -20px; --y: 30px; animation-delay: 300ms; background: rgba(59,130,246,0.9); color: rgba(59,130,246,0.9); }
+        .p4 { right: 22px; bottom: 16px; --x: 20px; --y: 35px; animation-delay: 400ms; background: rgba(139,92,246,0.9); color: rgba(139,92,246,0.9); }
+        .p5 { left: 50%; top: 10px; --x: 0px; --y: -50px; animation-delay: 250ms; transform: translateX(-50%); background: rgba(236,72,153,0.9); color: rgba(236,72,153,0.9); }
       `}</style>
     </div>
   );
