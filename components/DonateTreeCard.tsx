@@ -12,7 +12,7 @@ const OTP_VERIFY_URL = "https://onetreeplanted.org/pages/donate-crypto";
 const USE_TESTNET = false;
 
 // Add your Builder Code here from base.dev
-const BUILDER_CODE = "bc_XXXXXXXX"; // Replace with your actual Builder Code
+const BUILDER_CODE = "bc_uu5mz1sd"; // Replace with your actual Builder Code
 const DATA_SUFFIX = Attribution.toDataSuffix({ codes: [BUILDER_CODE] });
 
 // Base Mainnet USDC (6 decimals)
