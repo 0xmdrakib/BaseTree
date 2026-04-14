@@ -112,14 +112,12 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     const timer = setTimeout(() => {
       const selected = availableWallets.get(savedUuid);
       
-      if (selected) {
+      if (selected && !address) {
          selected.provider.request({ method: "eth_accounts" })
            .then((accounts: string[]) => {
                if (accounts && accounts.length > 0) {
                  setAddress(accounts[0]);
                  setProviderDetails(selected);
-               } else {
-                 localStorage.removeItem("connected_wallet_uuid");
                }
            })
            .catch(() => {});
