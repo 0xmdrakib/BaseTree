@@ -63,7 +63,9 @@ function describeScore(score: number | null): ScoreDescriptor {
 
 export default function HomePage() {
   const [isMiniAppEnv, setIsMiniAppEnv] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Default to false so it opens normally right away without a loading screen blocking the UI.
+  // In a mini-app, it will just seamlessly update when the Farcaster context finishes loading.
+  const [isLoading, setIsLoading] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
