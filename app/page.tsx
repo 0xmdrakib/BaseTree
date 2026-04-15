@@ -149,7 +149,7 @@ export default function HomePage() {
       try {
         await Promise.race([
           initTask(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("Global Context timeout")), 500))
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Global Context timeout")), 700))
         ]);
       } catch (e) {
         console.error("Bootstrap error:", e);
