@@ -103,31 +103,35 @@ export default function HomePage() {
 
     async function bootstrap() {
       const initTask = async () => {
-        let insideMiniApp = await (sdk as any).isInMiniApp?.(1500).catch(() => false);
-        if (!insideMiniApp) {
-          const caps = await sdk.getCapabilities().catch(() => [] as string[]);
-          if (
-            caps.includes("actions.ready") ||
-            caps.includes("actions.sendToken") ||
-            caps.includes("actions.composeCast")
-          ) {
-            insideMiniApp = true;
+        let isFarcaster = false;
+        try {
+          // Fast check: we only care if it's explicitly inside the miniapp SDK
+          const inside = await sdk.isInMiniApp();
+          if (inside) {
+            // Further verify it's a Farcaster client by checking context
+            const context = await sdk.context;
+            if (context?.user?.fid) {
+              isFarcaster = true;
+            }
           }
+        } catch (e) {
+          // Ignore
         }
 
-        if (!insideMiniApp) {
+        if (!isFarcaster) {
+          // Instantly fallback to standard web / base web
           setIsMiniAppEnv(false);
           setIsLoading(false);
           return;
         }
 
         setIsMiniAppEnv(true);
-
+        
         const context = await sdk.context;
         const fid = context.user?.fid;
 
         if (!fid) {
-          setError("Could not detect your Farcaster account (missing FID).");
+          setIsMiniAppEnv(false);
           setIsLoading(false);
           return;
         }
@@ -135,7 +139,8 @@ export default function HomePage() {
         const res = await fetch(`/api/profile?fid=${fid}`);
         if (!res.ok) {
           const body = await res.json().catch(() => null);
-          setError(body?.error ?? "Failed to fetch Neynar profile.");
+          console.error("Neynar error:", body);
+          setIsMiniAppEnv(false);
           setIsLoading(false);
           return;
         }
@@ -149,7 +154,7 @@ export default function HomePage() {
       try {
         await Promise.race([
           initTask(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("Global Context timeout")), 700))
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Global Context timeout")), 5000))
         ]);
       } catch (e) {
         console.error("Bootstrap error:", e);
