@@ -18,19 +18,24 @@ export default function WalletConnect() {
   const [showMiniappConnected, setShowMiniappConnected] = useState(false);
 
   useEffect(() => {
-    sdk.isInMiniApp().then((isIn) => {
-      setIsMiniappMode(isIn);
+    sdk.isInMiniApp().then(async (isIn) => {
       if (isIn) {
-        setShowMiniappConnected(true);
-        sdk.wallet.getEthereumProvider().then((provider: any) => {
-           provider.request({ method: "eth_accounts" }).then((accounts: string[]) => {
-               if (accounts && accounts.length > 0) {
-                 setMiniappAddress(accounts[0]);
-               } else {
-                 setMiniappAddress("0xBase...App");
-               }
-           }).catch(() => setMiniappAddress("0xBase...App"));
-        }).catch(() => setMiniappAddress("0xBase...App"));
+        try {
+          const context = await sdk.context;
+          if (context?.user?.fid) {
+            setIsMiniappMode(true);
+            setShowMiniappConnected(true);
+            const provider: any = await sdk.wallet.getEthereumProvider();
+            const accounts: string[] = await provider.request({ method: "eth_accounts" });
+            if (accounts && accounts.length > 0) {
+              setMiniappAddress(accounts[0]);
+            } else {
+              setMiniappAddress("0xBase...App");
+            }
+          }
+        } catch (e) {
+          // Not farcaster or failed
+        }
       }
     }).catch(() => {});
   }, []);
