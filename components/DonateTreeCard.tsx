@@ -196,11 +196,18 @@ export default function DonateTreeCard() {
     setStatus("processing");
 
     try {
-      // ✅ Mini App hosts (Base app + Warpcast): prefer direct tx via Ethereum provider.
-// This shows the native "Confirm transaction" sheet (like your screenshots) instead of the
-// generic "Send" flow opened by actions.sendToken.
-const inMiniApp = await sdk.isInMiniApp().catch(() => false);
-if (inMiniApp) {
+      let inMiniApp = false;
+      try {
+        const isIn = await sdk.isInMiniApp();
+        if (isIn) {
+          const context = await sdk.context;
+          if (context?.user?.fid) {
+            inMiniApp = true;
+          }
+        }
+      } catch (e) {}
+
+      if (inMiniApp) {
   const capabilities = await sdk.getCapabilities().catch(() => [] as string[]);
 
   // Best UX: direct EIP-1193 provider → eth_sendTransaction (confirm sheet)
