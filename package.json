@@ -8,7 +8,6 @@
     "start": "next start"
   },
   "dependencies": {
-    "@farcaster/miniapp-sdk": "^0.2.0",
     "@walletconnect/ethereum-provider": "^2.23.10",
     "next": "^14.2.35",
     "ox": "^1.7.1",

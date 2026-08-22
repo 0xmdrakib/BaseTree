@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { sdk } from "@farcaster/miniapp-sdk";
 import { useWallet } from "./WalletProvider";
 
 function shortAddr(addr: string) {
@@ -40,49 +39,12 @@ export default function WalletConnect() {
   const [walletConnectError, setWalletConnectError] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const [miniappAddress, setMiniappAddress] = useState<string | null>(null);
-  const [isMiniappMode, setIsMiniappMode] = useState(false);
-  const [showMiniappConnected, setShowMiniappConnected] = useState(false);
-
-  useEffect(() => {
-    sdk.isInMiniApp().then(async (isIn) => {
-      if (isIn) {
-        try {
-          const context = await sdk.context;
-          if (context?.user?.fid) {
-            setIsMiniappMode(true);
-            setShowMiniappConnected(true);
-            const provider: any = await sdk.wallet.getEthereumProvider();
-            const accounts: string[] = await provider.request({ method: "eth_accounts" });
-            if (accounts && accounts.length > 0) {
-              setMiniappAddress(accounts[0]);
-            } else {
-              setMiniappAddress("0xBase...App");
-            }
-          }
-        } catch (e) {
-          // Not farcaster or failed
-        }
-      }
-    }).catch(() => {});
-  }, []);
-
-  const effectiveAddress = (isMiniappMode && showMiniappConnected) ? (miniappAddress || "0xBase...App") : webAddress;
-
   const handleDisconnect = () => {
-    if (isMiniappMode && showMiniappConnected) {
-      setShowMiniappConnected(false);
-    } else {
-      disconnectWallet();
-    }
+    disconnectWallet();
   };
 
   const handleConnectClick = () => {
-    if (isMiniappMode) {
-      setShowMiniappConnected(true);
-    } else {
-      setIsOpen(true);
-    }
+    setIsOpen(true);
   };
 
   // Close modal when clicked outside
@@ -119,7 +81,7 @@ export default function WalletConnect() {
     }
   };
 
-  if (effectiveAddress) {
+  if (webAddress) {
     return (
       <div className="absolute right-4 -top-14 z-30">
         <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 shadow-lg backdrop-blur-md transition hover:bg-black/50">
@@ -128,7 +90,7 @@ export default function WalletConnect() {
             <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border border-black bg-green-400" />
           </span>
           <span className="text-xs font-semibold text-white/90">
-            {shortAddr(effectiveAddress)}
+            {shortAddr(webAddress)}
           </span>
           <button
             onClick={handleDisconnect}

@@ -1,97 +1,8 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { sdk } from "@farcaster/miniapp-sdk";
 import Image from "next/image";
 import DonateTreeCard from "../components/DonateTreeCard";
 import WalletConnect from "../components/WalletConnect";
 
-type Profile = {
-  fid: number;
-  username: string;
-  displayName?: string | null;
-  pfpUrl?: string | null;
-};
-
 export default function HomePage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [profile, setProfile] = useState<Profile | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function bootstrap() {
-      const initTask = async () => {
-        const insideMiniApp = await sdk.isInMiniApp();
-        if (!insideMiniApp) return;
-
-        const { user } = await sdk.context;
-        if (user?.fid && !cancelled) {
-          setProfile({
-            fid: user.fid,
-            username: user.username ?? `fid_${user.fid}`,
-            displayName: user.displayName,
-            pfpUrl: user.pfpUrl,
-          });
-        }
-
-        await sdk.actions.ready();
-      };
-
-      try {
-        await Promise.race([
-          initTask(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("Global Context timeout")), 5000))
-        ]);
-      } catch (e) {
-        console.error("Bootstrap error:", e);
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    bootstrap();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const isAnonymous = !profile;
-  const displayProfile: Profile = isAnonymous
-    ? {
-        fid: 0,
-        username: "earth_guardian",
-        displayName: "Anonymous Planter",
-        pfpUrl: null,
-      }
-    : profile;
-
-  if (isLoading) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-background px-6">
-        <div className="relative w-full max-w-xs overflow-hidden rounded-3xl border border-white/10 bg-card/80 p-5">
-          <div className="pointer-events-none absolute inset-0 opacity-60 blur-3xl gradient-ring" />
-          <div className="relative">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 animate-pulse rounded-2xl bg-white/10" />
-              <div className="space-y-1">
-                <div className="h-3 w-28 animate-pulse rounded-full bg-white/15" />
-                <div className="h-2.5 w-16 animate-pulse rounded-full bg-white/10" />
-              </div>
-            </div>
-            <div className="mt-4 space-y-2">
-              <div className="h-16 w-full animate-pulse rounded-2xl bg-white/5" />
-              <div className="h-16 w-full animate-pulse rounded-2xl bg-white/5" />
-            </div>
-            <p className="mt-4 text-xs text-white/50">
-              Loading Base Tree…
-            </p>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main className="flex min-h-[100svh] w-full flex-col items-center justify-start pt-20 pb-8 sm:justify-center sm:py-8 bg-background px-4">
       <div className="relative w-full max-w-md sm:mt-0">
@@ -119,27 +30,19 @@ export default function HomePage() {
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              {displayProfile.pfpUrl ? (
-                <img
-                  src={displayProfile.pfpUrl}
-                  alt={displayProfile.username}
-                  className="h-12 w-12 shrink-0 rounded-2xl border border-white/15 object-cover"
-                />
-              ) : (
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-emerald-500/10 text-2xl">
-                  🌿
-                </div>
-              )}
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-emerald-500/10 text-2xl">
+                🌿
+              </div>
 
               <div className="min-w-0">
                 <div className="truncate text-[17px] font-semibold leading-tight text-white/95">
-                  {displayProfile.displayName || displayProfile.username}
+                  Anonymous Planter
                 </div>
                 <div className="mt-1 truncate text-xs font-medium text-white/60">
-                  @{displayProfile.username}
+                  @earth_guardian
                 </div>
                 <div className="mt-1 text-[11px] text-white/45">
-                  {isAnonymous ? "Base Network" : `FID: ${displayProfile.fid}`}
+                  Base Network
                 </div>
               </div>
             </div>
