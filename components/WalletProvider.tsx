@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 // EIP-6963 types
 interface EIP6963ProviderInfo {
@@ -25,6 +25,8 @@ interface WalletContextType {
   providerDetails: EIP6963ProviderDetail | null; // active provider
   availableWallets: EIP6963ProviderDetail[];
   connectWallet: (rdns: string) => Promise<void>;
+  connectWalletConnect: (onUri: (uri: string) => void) => Promise<void>;
+  cancelWalletConnect: () => void;
   disconnectWallet: () => void;
 }
 
@@ -34,6 +36,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
   const [providerDetails, setProviderDetails] = useState<EIP6963ProviderDetail | null>(null);
   const [availableWallets, setAvailableWallets] = useState<Map<string, EIP6963ProviderDetail>>(new Map());
+  const walletConnectProvider = useRef<any>(null);
 
   // Listen for EIP-6963 provider announcements
   useEffect(() => {
@@ -92,14 +95,22 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
+    const handleDisconnect = () => {
+      setAddress(null);
+      setProviderDetails(null);
+      localStorage.removeItem("connected_wallet_rdns");
+    };
+
     const provider: any = providerDetails.provider;
     if (provider?.on) {
       provider.on("accountsChanged", handleAccountsChanged);
+      provider.on("disconnect", handleDisconnect);
     }
 
     return () => {
       if (provider?.removeListener) {
         provider.removeListener("accountsChanged", handleAccountsChanged);
+        provider.removeListener("disconnect", handleDisconnect);
       }
     };
   }, [providerDetails]);
@@ -147,7 +158,64 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const connectWalletConnect = async (onUri: (uri: string) => void) => {
+    const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID?.trim();
+    if (!projectId) {
+      throw new Error("WalletConnect is not configured.");
+    }
+
+    const { EthereumProvider } = await import("@walletconnect/ethereum-provider");
+    const provider = await EthereumProvider.init({
+      projectId,
+      chains: [8453],
+      showQrModal: false,
+      rpcMap: {
+        8453: new URL("/api/base-rpc", window.location.origin).toString(),
+      },
+      metadata: {
+        name: "Base Tree",
+        description: "Plant trees with USDC on Base.",
+        url: window.location.origin,
+        icons: [new URL("/icon.png", window.location.origin).toString()],
+      },
+    });
+
+    walletConnectProvider.current = provider;
+    provider.on("display_uri", onUri);
+
+    if (!provider.connected) {
+      await provider.connect();
+    }
+
+    const accounts = await provider.request<string[]>({ method: "eth_accounts" });
+    const account = accounts?.[0];
+    if (!account) throw new Error("WalletConnect did not return an account.");
+
+    const details: EIP6963ProviderDetail = {
+      info: {
+        uuid: "walletconnect",
+        name: provider.session?.peer.metadata.name ?? "WalletConnect",
+        icon: provider.session?.peer.metadata.icons?.[0] ?? "",
+        rdns: "org.walletconnect",
+      },
+      provider,
+    };
+
+    setAddress(account);
+    setProviderDetails(details);
+    localStorage.setItem("connected_wallet_rdns", details.info.rdns);
+  };
+
+  const cancelWalletConnect = () => {
+    const provider = walletConnectProvider.current;
+    if (provider?.connecting) provider.signer.abortPairingAttempt();
+  };
+
   const disconnectWallet = () => {
+    if (providerDetails?.info.rdns === "org.walletconnect") {
+      void walletConnectProvider.current?.disconnect().catch(() => {});
+      walletConnectProvider.current = null;
+    }
     setAddress(null);
     setProviderDetails(null);
     localStorage.removeItem("connected_wallet_rdns");
@@ -160,6 +228,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         providerDetails,
         availableWallets: Array.from(availableWallets.values()),
         connectWallet,
+        connectWalletConnect,
+        cancelWalletConnect,
         disconnectWallet,
       }}
     >
