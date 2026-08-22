@@ -10,8 +10,14 @@ const RECIPIENT = "0x62233D5483515A79ac06CEcEbac7D399fDF8a99b";
 const OTP_VERIFY_URL = "https://onetreeplanted.org/pages/donate-crypto";
 const USE_TESTNET = false;
 
-const BUILDER_CODE = "bc_uu5mz1sd";
-const DATA_SUFFIX = Attribution.toDataSuffix({ codes: [BUILDER_CODE] });
+const BUILDER_CODE = process.env.NEXT_PUBLIC_BASE_BUILDER_CODE?.trim();
+const DATA_SUFFIX = BUILDER_CODE
+  ? Attribution.toDataSuffix({ codes: [BUILDER_CODE] })
+  : null;
+
+function withBuilderCode(data: `0x${string}`): `0x${string}` {
+  return DATA_SUFFIX ? concatHex([data, DATA_SUFFIX]) : data;
+}
 
 // Base Mainnet USDC (6 decimals)
 const BASE_USDC_CAIP19 =
@@ -97,15 +103,13 @@ async function sendUsdcViaEthereumProvider(amountStr: string): Promise<string> {
     args: [RECIPIENT, value],
   });
 
-  const dataWithBuilderCode = concatHex([data, DATA_SUFFIX as `0x${string}`]);
-
   const txHash: string = await provider.request({
     method: "eth_sendTransaction",
     params: [
       {
         from,
         to: BASE_USDC_ADDRESS,
-        data: dataWithBuilderCode,
+        data: withBuilderCode(data),
         value: "0x0",
       },
     ],
@@ -259,14 +263,12 @@ if (!inMiniApp && providerDetails && connectedAddress) {
     args: [RECIPIENT, value],
   });
 
-  const dataWithBuilderCode = concatHex([data, DATA_SUFFIX as `0x${string}`]);
-
   const txHash = await _provider.request({
     method: "eth_sendTransaction",
     params: [{
       from: connectedAddress,
       to: BASE_USDC_ADDRESS,
-      data: dataWithBuilderCode,
+      data: withBuilderCode(data),
       value: "0x0"
     }],
   });
