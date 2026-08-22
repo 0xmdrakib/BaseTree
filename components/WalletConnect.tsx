@@ -8,6 +8,26 @@ function shortAddr(addr: string) {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
+function WalletIcon({ className = "h-[18px] w-[18px]" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M21 12.75V9a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 1 3 4.5v13.125A2.375 2.375 0 0 0 5.375 20h13.25A2.375 2.375 0 0 0 21 17.625V16.5" />
+      <path d="M3 4.5A2.5 2.5 0 0 1 5.5 2H18a1 1 0 0 1 1 1v3.75" />
+      <path d="M21 12h-4.25a2.25 2.25 0 0 0 0 4.5H21V12Z" />
+      <circle cx="16.75" cy="14.25" r="0.75" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export default function WalletConnect() {
   const {
     address: webAddress,
@@ -95,7 +115,10 @@ export default function WalletConnect() {
     return (
       <div className="absolute right-4 -top-14 z-30">
         <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 shadow-lg backdrop-blur-md transition hover:bg-black/50">
-          <div className="h-2 w-2 rounded-full bg-green-400" />
+          <span className="relative flex h-6 w-6 items-center justify-center rounded-lg bg-white/10 text-white/90">
+            <WalletIcon className="h-4 w-4" />
+            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border border-black bg-green-400" />
+          </span>
           <span className="text-xs font-semibold text-white/90">
             {shortAddr(effectiveAddress)}
           </span>
@@ -126,22 +149,11 @@ export default function WalletConnect() {
     <div className="absolute right-4 -top-14 z-30">
       <button
         onClick={handleConnectClick}
-        className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-md transition hover:border-white/30 hover:bg-black/60 focus:outline-none focus:ring-2 focus:ring-white/20"
+        className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-black/40 py-1.5 pl-1.5 pr-4 text-xs font-semibold text-white shadow-lg backdrop-blur-md transition hover:border-white/30 hover:bg-black/60 focus:outline-none focus:ring-2 focus:ring-white/20"
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-4 w-4 text-white/85"
-          aria-hidden="true"
-        >
-          <path d="M19 7V5a2 2 0 0 0-2-2H5a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H5a1 1 0 0 1 0-2h12" />
-          <path d="M16 12h5v5h-5a2.5 2.5 0 0 1 0-5Z" />
-          <circle cx="16.5" cy="14.5" r="0.5" fill="currentColor" stroke="none" />
-        </svg>
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-inset ring-white/10">
+          <WalletIcon />
+        </span>
         Connect Wallet
       </button>
 
