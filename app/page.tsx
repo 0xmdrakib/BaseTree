@@ -200,6 +200,10 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      <footer className="mt-6 text-center text-[11px] font-semibold text-white/45">
+        © 2026 Md. Rakib • made with love and passion.
+      </footer>
     </main>
   );
 }
