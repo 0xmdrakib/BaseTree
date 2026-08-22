@@ -168,16 +168,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       projectId,
       chains: [8453],
       showQrModal: true,
-      qrModalOptions: {
-        themeMode: "dark",
-        enableExplorer: true,
-        enableMobileFullScreen: false,
-        themeVariables: {
-          "--wcm-z-index": "100",
-          "--wcm-font-family": "Inter, ui-sans-serif, system-ui, sans-serif",
-          "--wcm-container-border-radius": "28px",
-        },
-      },
       rpcMap: {
         8453: new URL("/api/base-rpc", window.location.origin).toString(),
       },
