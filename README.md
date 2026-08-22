@@ -1,6 +1,6 @@
 # Base Tree
 
-Base Tree is a Base mini app and web app for viewing Farcaster profile reputation and planting trees with USDC donations on Base.
+Base Tree is a Base mini app and web app for planting trees with USDC donations on Base.
 
 **Live app:** https://basetree.rakibhq.xyz
 
@@ -8,23 +8,21 @@ Base Tree is a Base mini app and web app for viewing Farcaster profile reputatio
 
 ## Overview
 
-Base Tree combines a lightweight profile card with an onchain donation flow.
-
-Inside a Farcaster or Base mini app client, it reads the connected user context, fetches profile details from Neynar, and shows follower stats, follow ratio, and Neynar reputation score. On web, it falls back to an anonymous environmental impact view while still allowing wallet-based donations.
+Base Tree combines a lightweight environmental impact card with an onchain donation flow. Inside a Farcaster or Base mini app client, it reads basic user identity directly from the mini app SDK. On the web, it shows an anonymous environmental impact view while still allowing wallet-based donations.
 
 The donation flow lets users send USDC on Base to a tree-planting donation address and view the transaction receipt on Basescan after payment.
 
 ## Features
 
-- Farcaster profile lookup using the current mini app user FID
-- Neynar score, follower count, following count, and follow ratio display
-- Reputation label based on Neynar score ranges
+- Farcaster identity from the current mini app context
+- Environmental impact status and Base network details
 - Anonymous web fallback when mini app context is unavailable
 - USDC donation presets for `$0.10`, `$0.50`, `$1.00`, and custom amounts
 - Base mainnet wallet flow with automatic network switching request
 - Mini app donation support through Farcaster wallet capabilities
 - Browser wallet support through injected EIP-6963 providers
 - Transaction receipt link to Basescan after a successful donation
+- ERC-8021 transaction attribution with a Base Builder Code
 - Tree growth animation after payment confirmation
 - Farcaster/Base mini app metadata and static preview assets
 
@@ -32,19 +30,16 @@ The donation flow lets users send USDC on Base to a tree-planting donation addre
 
 - Base Mainnet
 
-## Profile behavior
+## Identity behavior
 
-When the app runs inside a Farcaster-compatible mini app client, it checks the mini app SDK context for the current user FID. The server API route uses that FID to request the user's Farcaster profile data from Neynar.
+When the app runs inside a Farcaster-compatible mini app client, it reads the current user's FID, username, display name, and profile image directly from the mini app SDK context.
 
 The UI shows:
 
 - Farcaster username and display name
 - Profile image when available
 - FID
-- Follower and following counts
-- Follow ratio
-- Neynar score
-- Human-readable signal label
+- Environmental impact status
 
 If profile data is unavailable or the app is opened as a regular web app, Base Tree shows an anonymous environmental impact profile instead of blocking the experience.
 
@@ -63,9 +58,8 @@ In regular browsers, users can connect an injected wallet, switch to Base if nee
 - TypeScript
 - Tailwind CSS
 - Farcaster Mini App SDK
-- Base Account SDK
+- ox
 - viem
-- Neynar API
 
 ---
 
