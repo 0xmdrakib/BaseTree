@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
-import QRCode from "qrcode";
 import { useWallet } from "./WalletProvider";
 
 function shortAddr(addr: string) {
@@ -15,15 +14,10 @@ export default function WalletConnect() {
     availableWallets,
     connectWallet,
     connectWalletConnect,
-    cancelWalletConnect,
     disconnectWallet,
   } = useWallet();
   const [isOpen, setIsOpen] = useState(false);
-  const [walletConnectOpen, setWalletConnectOpen] = useState(false);
-  const [walletConnectUri, setWalletConnectUri] = useState<string | null>(null);
-  const [walletConnectQr, setWalletConnectQr] = useState<string | null>(null);
   const [walletConnectError, setWalletConnectError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
   const [miniappAddress, setMiniappAddress] = useState<string | null>(null);
@@ -86,54 +80,15 @@ export default function WalletConnect() {
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    let cancelled = false;
-    if (!walletConnectUri) {
-      setWalletConnectQr(null);
-      return;
-    }
-
-    void QRCode.toDataURL(walletConnectUri, {
-      width: 360,
-      margin: 2,
-      errorCorrectionLevel: "H",
-      color: { dark: "#111111", light: "#ffffff" },
-    }).then((dataUrl) => {
-      if (!cancelled) setWalletConnectQr(dataUrl);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [walletConnectUri]);
-
   const openWalletConnect = async () => {
-    setIsOpen(false);
-    setWalletConnectOpen(true);
-    setWalletConnectUri(null);
     setWalletConnectError(null);
-    setCopied(false);
 
     try {
-      await connectWalletConnect(setWalletConnectUri);
-      setWalletConnectOpen(false);
+      await connectWalletConnect();
+      setIsOpen(false);
     } catch (error: any) {
       setWalletConnectError(error?.message ?? "WalletConnect connection failed.");
     }
-  };
-
-  const closeWalletConnect = () => {
-    cancelWalletConnect();
-    setWalletConnectOpen(false);
-    setWalletConnectUri(null);
-    setWalletConnectError(null);
-  };
-
-  const copyWalletConnectLink = async () => {
-    if (!walletConnectUri) return;
-    await navigator.clipboard.writeText(walletConnectUri);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1500);
   };
 
   if (effectiveAddress) {
@@ -259,66 +214,12 @@ export default function WalletConnect() {
                 </span>
                 WalletConnect
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {walletConnectOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md">
-          <div className="w-full max-w-sm rounded-[30px] border border-white/10 bg-[#1d1d1f] p-5 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-white">WalletConnect</h2>
-              <button
-                type="button"
-                onClick={closeWalletConnect}
-                className="rounded-full p-2 text-white/60 transition hover:bg-white/10 hover:text-white"
-                aria-label="Close WalletConnect"
-              >
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="relative mt-5 aspect-square overflow-hidden rounded-2xl bg-white p-3">
-              {walletConnectQr ? (
-                <>
-                  <img src={walletConnectQr} alt="WalletConnect QR code" className="h-full w-full" />
-                  <div className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl border-4 border-white bg-[#171719] shadow-lg">
-                    <svg viewBox="0 0 32 32" className="h-10 w-10" aria-hidden="true">
-                      <path
-                        d="M8.1 12.2c4.4-4.3 11.5-4.3 15.8 0l.6.6a.7.7 0 0 1 0 1l-2 1.9a.35.35 0 0 1-.5 0l-.8-.8a7.5 7.5 0 0 0-10.5 0l-.9.8a.35.35 0 0 1-.5 0l-2-1.9a.7.7 0 0 1 0-1l.8-.6Zm20 4 1.8 1.8a.7.7 0 0 1 0 1l-8.1 7.9a.7.7 0 0 1-1 0L15 21.3a.18.18 0 0 0-.25 0L9 26.9a.7.7 0 0 1-1 0L0 19a.7.7 0 0 1 0-1l1.9-1.8a.7.7 0 0 1 1 0l5.7 5.6a.18.18 0 0 0 .25 0l5.7-5.6a.7.7 0 0 1 1 0l5.7 5.6a.18.18 0 0 0 .25 0l5.7-5.6a.7.7 0 0 1 .9 0Z"
-                        fill="white"
-                      />
-                    </svg>
-                  </div>
-                </>
-              ) : (
-                <div className="flex h-full items-center justify-center">
-                  <div className="h-9 w-9 animate-spin rounded-full border-2 border-black/15 border-t-[#3396ff]" />
-                </div>
+              {walletConnectError && (
+                <p className="mt-3 text-center text-xs text-red-300">
+                  {walletConnectError}
+                </p>
               )}
             </div>
-
-            <p className="mt-4 text-center text-sm font-semibold text-white">
-              Scan this QR code with your phone
-            </p>
-
-            <div className="mt-4 flex justify-center">
-              <button
-                type="button"
-                onClick={copyWalletConnectLink}
-                disabled={!walletConnectUri}
-                className="rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold text-white/85 transition hover:bg-white/10 disabled:opacity-40"
-              >
-                {copied ? "Copied" : "Copy link"}
-              </button>
-            </div>
-
-            {walletConnectError && (
-              <p className="mt-4 text-center text-xs text-red-300">{walletConnectError}</p>
-            )}
           </div>
         </div>
       )}

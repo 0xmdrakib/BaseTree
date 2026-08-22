@@ -25,8 +25,7 @@ interface WalletContextType {
   providerDetails: EIP6963ProviderDetail | null; // active provider
   availableWallets: EIP6963ProviderDetail[];
   connectWallet: (rdns: string) => Promise<void>;
-  connectWalletConnect: (onUri: (uri: string) => void) => Promise<void>;
-  cancelWalletConnect: () => void;
+  connectWalletConnect: () => Promise<void>;
   disconnectWallet: () => void;
 }
 
@@ -158,7 +157,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const connectWalletConnect = async (onUri: (uri: string) => void) => {
+  const connectWalletConnect = async () => {
     const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID?.trim();
     if (!projectId) {
       throw new Error("WalletConnect is not configured.");
@@ -168,7 +167,17 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     const provider = await EthereumProvider.init({
       projectId,
       chains: [8453],
-      showQrModal: false,
+      showQrModal: true,
+      qrModalOptions: {
+        themeMode: "dark",
+        enableExplorer: true,
+        enableMobileFullScreen: false,
+        themeVariables: {
+          "--wcm-z-index": "100",
+          "--wcm-font-family": "Inter, ui-sans-serif, system-ui, sans-serif",
+          "--wcm-container-border-radius": "28px",
+        },
+      },
       rpcMap: {
         8453: new URL("/api/base-rpc", window.location.origin).toString(),
       },
@@ -181,7 +190,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     });
 
     walletConnectProvider.current = provider;
-    provider.on("display_uri", onUri);
 
     if (!provider.connected) {
       await provider.connect();
@@ -206,11 +214,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("connected_wallet_rdns", details.info.rdns);
   };
 
-  const cancelWalletConnect = () => {
-    const provider = walletConnectProvider.current;
-    if (provider?.connecting) provider.signer.abortPairingAttempt();
-  };
-
   const disconnectWallet = () => {
     if (providerDetails?.info.rdns === "org.walletconnect") {
       void walletConnectProvider.current?.disconnect().catch(() => {});
@@ -229,7 +232,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         availableWallets: Array.from(availableWallets.values()),
         connectWallet,
         connectWalletConnect,
-        cancelWalletConnect,
         disconnectWallet,
       }}
     >
