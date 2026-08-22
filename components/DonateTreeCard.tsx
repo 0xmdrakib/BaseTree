@@ -132,6 +132,7 @@ export default function DonateTreeCard() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   // animation stages
   const [showAnim, setShowAnim] = useState(false);
@@ -144,6 +145,7 @@ export default function DonateTreeCard() {
       setStatus("idle");
       setError(null);
       setTxHash(null);
+      setIsConfirmed(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preset, custom]);
@@ -172,9 +174,28 @@ export default function DonateTreeCard() {
     );
   }
 
+  function handleSubmittedTransaction(hash: string) {
+    setTxHash(hash);
+    setStatus("success");
+    startTreeAnimation();
+
+    void fetch(`/api/transaction-receipt?hash=${encodeURIComponent(hash)}`, {
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        if (!response.ok) return;
+        const receipt = (await response.json()) as { confirmed?: boolean };
+        if (receipt.confirmed) setIsConfirmed(true);
+      })
+      .catch(() => {
+        // The transaction remains submitted even if private RPC confirmation fails.
+      });
+  }
+
   async function donate() {
     setError(null);
     setTxHash(null);
+    setIsConfirmed(false);
 
     const n = Number(amount);
     if (!Number.isFinite(n) || n <= 0) {
@@ -208,9 +229,7 @@ export default function DonateTreeCard() {
   // Best UX: direct EIP-1193 provider → eth_sendTransaction (confirm sheet)
   if (capabilities.includes("wallet.getEthereumProvider")) {
     const hash = await sendUsdcViaEthereumProvider(amount);
-    setTxHash(hash);
-    setStatus("success");
-    startTreeAnimation();
+    handleSubmittedTransaction(hash);
     return;
   }
 
@@ -223,9 +242,7 @@ export default function DonateTreeCard() {
     });
 
     if (result?.success) {
-      setTxHash(result.send.transaction);
-      setStatus("success");
-      startTreeAnimation();
+      handleSubmittedTransaction(result.send.transaction);
       return;
     }
 
@@ -274,9 +291,7 @@ if (!inMiniApp && providerDetails && connectedAddress) {
   });
         
   if (!txHash || typeof txHash !== "string") throw new Error("Transaction failed.");
-  setTxHash(txHash);
-  setStatus("success");
-  startTreeAnimation();
+  handleSubmittedTransaction(txHash);
   return;
 }
 
@@ -399,7 +414,9 @@ if (!inMiniApp) {
         {txHash ? (
           <div className="mt-3 rounded-xl border border-white/12 bg-black/40 p-3 text-[11px] text-white/70">
             <div className="flex items-center justify-between gap-2">
-              <div className="font-semibold text-white/85">Receipt</div>
+              <div className="font-semibold text-white/85">
+                {isConfirmed ? "Confirmed receipt" : "Submitted receipt"}
+              </div>
               <a
                 className="text-white/85 underline underline-offset-4"
                 href={`https://basescan.org/tx/${txHash}`}
