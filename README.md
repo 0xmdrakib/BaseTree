@@ -26,7 +26,6 @@ The donation flow lets users send USDC on Base to a tree-planting donation addre
 - Browser wallet support through injected EIP-6963 providers
 - Transaction receipt link to Basescan after a successful donation
 - Tree growth animation after payment confirmation
-- Share button that opens the Farcaster cast composer from supported clients
 - Farcaster/Base mini app metadata and static preview assets
 
 ## Supported network
