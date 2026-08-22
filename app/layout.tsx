@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { WalletProvider } from "../components/WalletProvider";
 
+const BASE_APP_ID = "693d425ed77c069a945bde51";
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -14,6 +16,9 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Base Tree",
   description: "Plant real trees with USDC donations on Base",
+  other: {
+    "base:app_id": BASE_APP_ID,
+  },
 };
 
 export default function RootLayout({
