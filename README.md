@@ -2,7 +2,7 @@
 
 Base Tree is a Base mini app and web app for viewing Farcaster profile reputation and planting trees with USDC donations on Base.
 
-**Live app:** https://basetree.vercel.app
+**Live app:** https://basetree.rakibhq.xyz
 
 ---
 
@@ -69,37 +69,6 @@ In regular browsers, users can connect an injected wallet, switch to Base if nee
 - Neynar API
 
 ---
-
-## Getting started
-
-### 1. Install dependencies
-
-```bash
-npm install
-```
-
-### 2. Configure environment variables
-
-Create a `.env` file in the project root. Then copy the values from [.env.example](./.env.example) and fill them in.
-
-```env
-NEYNAR_API_KEY=your_neynar_api_key
-```
-
-### 3. Run the development server
-
-```bash
-npm run dev
-```
-
-Open `http://localhost:3000` in your browser.
-
-### 4. Build for production
-
-```bash
-npm run build
-npm run start
-```
 
 ## License
 
