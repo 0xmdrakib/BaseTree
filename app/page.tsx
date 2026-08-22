@@ -194,10 +194,6 @@ export default function HomePage() {
              <DonateTreeCard />
           </div>
 
-          {/* Footer */}
-          <div className="mt-4 text-[10px] text-white/40">
-             Start donating with your connected wallet · Base Network
-          </div>
         </div>
       </div>
 
