@@ -179,11 +179,12 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       },
     });
 
-    walletConnectProvider.current = provider;
-
-    if (!provider.connected) {
+    if (!provider.session) {
       await provider.connect();
     }
+
+    // Closing the WalletConnect modal is not a connection failure.
+    if (!provider.session) return;
 
     const accounts = await provider.request<string[]>({ method: "eth_accounts" });
     const account = accounts?.[0];
@@ -199,6 +200,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       provider,
     };
 
+    walletConnectProvider.current = provider;
     setAddress(account);
     setProviderDetails(details);
     localStorage.setItem("connected_wallet_rdns", details.info.rdns);

@@ -107,7 +107,15 @@ export default function WalletConnect() {
       await connectWalletConnect();
       setIsOpen(false);
     } catch (error: any) {
-      setWalletConnectError(error?.message ?? "WalletConnect connection failed.");
+      const message = error?.message ?? "WalletConnect connection failed.";
+      const wasCancelled = /connection request reset|user rejected|user closed|modal closed|cancelled|canceled/i.test(message);
+
+      if (wasCancelled) {
+        setWalletConnectError(null);
+        return;
+      }
+
+      setWalletConnectError(message);
     }
   };
 
