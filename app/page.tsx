@@ -95,7 +95,7 @@ export default function HomePage() {
   return (
     <main className="flex min-h-[100svh] w-full flex-col items-center justify-start pt-20 pb-8 sm:justify-center sm:py-8 bg-background px-4">
       <div className="relative w-full max-w-md sm:mt-0">
-        <div className="absolute left-4 -top-12 z-30 flex items-center gap-2.5">
+        <div className="absolute left-4 -top-14 z-30 flex items-center gap-2.5">
           <div className="overflow-hidden rounded-xl border border-white/15 bg-black/40 p-0.5 shadow-lg backdrop-blur-md">
             <Image
               src="/logo.png"
