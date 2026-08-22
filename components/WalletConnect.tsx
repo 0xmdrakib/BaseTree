@@ -93,7 +93,7 @@ export default function WalletConnect() {
 
   if (effectiveAddress) {
     return (
-      <div className="absolute left-4 -top-12 z-30">
+      <div className="absolute right-4 -top-12 z-30">
         <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 shadow-lg backdrop-blur-md transition hover:bg-black/50">
           <div className="h-2 w-2 rounded-full bg-green-400" />
           <span className="text-xs font-semibold text-white/90">
@@ -123,11 +123,25 @@ export default function WalletConnect() {
   }
 
   return (
-    <div className="absolute left-4 -top-12 z-30">
+    <div className="absolute right-4 -top-12 z-30">
       <button
         onClick={handleConnectClick}
-        className="rounded-full border border-white/20 bg-black/40 px-4 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-md transition hover:border-white/30 hover:bg-black/60 focus:outline-none focus:ring-2 focus:ring-white/20"
+        className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-md transition hover:border-white/30 hover:bg-black/60 focus:outline-none focus:ring-2 focus:ring-white/20"
       >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-4 w-4 text-white/80"
+          aria-hidden="true"
+        >
+          <path d="M4 7.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1.5" />
+          <path d="M5 7.5h15a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H5a3 3 0 0 1-3-3V7a3 3 0 0 0 3 3" />
+          <path d="M17 14h5" />
+        </svg>
         Connect Wallet
       </button>
 
