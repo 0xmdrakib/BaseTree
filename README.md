@@ -12,16 +12,6 @@ Base Tree combines a lightweight environmental impact card with an onchain donat
 
 The donation flow lets users send USDC on Base to a tree-planting donation address and view the transaction receipt on Basescan after payment.
 
-## Configuration
-
-Copy `.env.example` to `.env.local` and set your Builder Code from Base.dev:
-
-```env
-NEXT_PUBLIC_BASE_BUILDER_CODE=bc_your_code
-```
-
-Builder Code attribution is optional. When the variable is unset, donations continue without an ERC-8021 attribution suffix.
-
 ## Features
 
 - Farcaster identity from the current mini app context
